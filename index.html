@@ -3,55 +3,31 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Demo Login + Notes Terenkripsi</title>
+  <title>Login - Secure Notes</title>
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
   <main>
-    <h1>Demo: Login + Catatan Terenkripsi</h1>
-
-    <section id="auth">
-      <h2>Masuk / Daftar</h2>
-      <form id="auth-form">
-        <label>
-          Email
-          <input type="email" id="email" required placeholder="email@contoh.com"/>
+    <h1>Masuk ke Secure Notes</h1>
+    <section>
+      <form id="auth-form" onsubmit="return false;">
+        <label>Username
+          <input type="text" id="username" placeholder="adminis" required />
         </label>
-        <label>
-          Password
-          <input type="password" id="password" required placeholder="••••••••"/>
+        <label>Password
+          <input type="password" id="password" placeholder="••••••••" required />
         </label>
         <div class="row">
-          <button type="button" id="btn-signup">Daftar</button>
-          <button type="button" id="btn-login">Masuk</button>
-          <button type="button" id="btn-logout" class="secondary">Keluar</button>
+          <button id="btn-login" type="button">Masuk</button>
         </div>
       </form>
-      <p class="hint">
-        Catatan Anda akan <b>dienkripsi di browser</b> sebelum disimpan ke database. Server hanya menyimpan ciphertext.
-      </p>
+      <p class="hint">Setelah berhasil login, Anda akan dialihkan ke <b>Dashboard</b> (channel terpisah).</p>
       <p id="status"></p>
-    </section>
-
-    <section id="notes" class="hidden">
-      <h2>Catatan Saya</h2>
-
-      <div id="decrypt-box" class="hidden">
-        <p>Masukkan password untuk mendekripsi catatan yang sudah ada.</p>
-        <input type="password" id="decrypt-password" placeholder="Password untuk dekripsi"/>
-        <button id="btn-decrypt-all">Dekripsi Semua</button>
-      </div>
-
-      <form id="note-form">
-        <textarea id="note-input" rows="3" placeholder="Tulis catatan..."></textarea>
-        <button type="submit">Simpan Catatan (terenkripsi)</button>
-      </form>
-
-      <ul id="note-list"></ul>
     </section>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js"></script>
+  <script src="common.js"></script>
+  <script src="auth.js"></script>
 </body>
 </html>

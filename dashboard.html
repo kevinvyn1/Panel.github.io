@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard - Secure Notes</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <main>
+    <div class="row" style="justify-content:space-between;align-items:center;">
+      <h1>Dashboard (Channel)</h1>
+      <button id="btn-logout" class="secondary">Keluar</button>
+    </div>
+
+    <section>
+      <h2>Catatan Terenkripsi</h2>
+
+      <div id="decrypt-box" class="hidden">
+        <p>Masukkan password Anda untuk mendekripsi catatan yang sudah ada:</p>
+        <input type="password" id="decrypt-password" placeholder="Password untuk dekripsi"/>
+        <button id="btn-decrypt-all">Dekripsi Semua</button>
+      </div>
+
+      <form id="note-form">
+        <textarea id="note-input" rows="3" placeholder="Tulis catatan..."></textarea>
+        <button type="submit">Simpan Catatan (terenkripsi)</button>
+      </form>
+
+      <p id="status"></p>
+      <ul id="note-list"></ul>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="common.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>
