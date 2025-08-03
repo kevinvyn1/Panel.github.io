@@ -1,20 +1,12 @@
-// === COMMON: Supabase init + shared helpers ===
-// Rely on RLS for security; anon key is public by design in JAMstack.
-const SUPABASE_URL = "https://ucvvgppywnkgoxlqxkpn.supabase.co/";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjdnZncHB5d25rZ294bHF4a3BuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyMjAxODYsImV4cCI6MjA2OTc5NjE4Nn0.DFEXqKTki567d72z0IiQOFZaSzGUEz_stma9NodZLJw";
+// === COMMON: Supabase init + shared helpers (HARDENED) ===
+// TODO: Ganti dengan kredensial proyek Supabase kamu
+const SUPABASE_URL = "https://YOUR-PROJECT-REF.supabase.co";
+const SUPABASE_ANON_KEY = "YOUR_PUBLIC_ANON_KEY";
 
 const { createClient } = window.supabase;
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// === Username-only gate (UI) ===
-// Hanya ijinkan username "adminis" di form login.
-// Login backend akan selalu pakai email tetap di bawah.
-const ALLOWED_USERNAME = "adminis";
-const LOGIN_EMAIL = "admin@infernostudios.com";
-const usernameToEmail = (_u) => LOGIN_EMAIL; // abaikan input lain
-
 // === Crypto helpers (Web Crypto) ===
-// Base64 <-> ArrayBuffer
 function ab2b64(buf) {
   const bytes = new Uint8Array(buf);
   let binary = "";
@@ -27,9 +19,6 @@ function b642ab(b64) {
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
   return bytes.buffer;
 }
-
-// Derive key dari passphrase khusus enkripsi-klien (bukan password Supabase)
-// Iterasi diperkuat (310k) untuk memperlambat brute force.
 async function deriveKeyFromPassphrase(passphrase, saltB64) {
   const enc = new TextEncoder();
   const salt = b642ab(saltB64);
@@ -53,17 +42,14 @@ async function deriveKeyFromPassphrase(passphrase, saltB64) {
     ["encrypt", "decrypt"]
   );
 }
-
 function randomB64(len) {
   const a = new Uint8Array(len);
   crypto.getRandomValues(a);
   return ab2b64(a);
 }
-
-// Enkripsi/Dekripsi teks (AES-GCM)
 async function encryptText(plainText, passphrase) {
-  const ivB64 = randomB64(12);   // 96-bit IV
-  const saltB64 = randomB64(16); // 128-bit salt
+  const ivB64 = randomB64(12);
+  const saltB64 = randomB64(16);
   const key = await deriveKeyFromPassphrase(passphrase, saltB64);
   const enc = new TextEncoder();
   const cipherBuf = await crypto.subtle.encrypt(
@@ -73,7 +59,6 @@ async function encryptText(plainText, passphrase) {
   );
   return { ciphertext: ab2b64(cipherBuf), iv: ivB64, salt: saltB64 };
 }
-
 async function decryptText({ ciphertext, iv, salt }, passphrase) {
   const key = await deriveKeyFromPassphrase(passphrase, salt);
   const plainBuf = await crypto.subtle.decrypt(
@@ -85,11 +70,5 @@ async function decryptText({ ciphertext, iv, salt }, passphrase) {
   return dec.decode(plainBuf);
 }
 
-// (Opsional) Ekspos util ke window jika perlu dipakai di file lain:
-window._secureCommon = {
-  supabase,
-  ALLOWED_USERNAME,
-  usernameToEmail,
-  encryptText,
-  decryptText,
-};
+// Opsional expose
+window._secureCommon = { supabase, encryptText, decryptText };

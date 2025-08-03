@@ -3,7 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src https://*.supabase.co https://*.supabase.net; img-src 'self' data:; style-src 'self'; script-src 'self' https://cdn.jsdelivr.net; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self';
+connect-src 'self' https://*.supabase.co https://*.supabase.net wss://*.supabase.co wss://*.supabase.net;
+img-src 'self' data:;
+style-src 'self';
+script-src 'self' https://cdn.jsdelivr.net;
+frame-ancestors 'none';
+base-uri 'none';
+form-action 'self';
+upgrade-insecure-requests">
   <meta name="referrer" content="no-referrer">
   <title>Dashboard - Secure Notes</title>
   <link rel="stylesheet" href="style.css"/>
@@ -11,7 +19,7 @@
 <body>
   <main>
     <div class="row" style="justify-content:space-between;align-items:center;">
-      <h1>Dashboard (Channel)</h1>
+      <h1>Dashboard</h1>
       <button id="btn-logout" class="secondary">Keluar</button>
     </div>
 
@@ -19,13 +27,13 @@
       <h2>Catatan Terenkripsi</h2>
 
       <div id="decrypt-box">
-        <p>Masukkan <b>passphrase enkripsi</b> (tidak dikirim ke server, hanya di memori). Jangan gunakan passphrase yang sama dengan password Supabase jika ingin pemisahan kunci maksimal.</p>
+        <p>Masukkan <b>passphrase enkripsi</b> (hanya di memori, tidak dikirim ke server).</p>
         <input type="password" id="enc-passphrase" placeholder="Passphrase enkripsi (klien-saja)"/>
         <div class="row">
           <button id="btn-set-passphrase">Pakai Passphrase</button>
           <button id="btn-clear-passphrase" class="secondary">Hapus dari Memori</button>
         </div>
-        <p class="hint">Passphrase akan otomatis dihapus dari memori bila tidak ada aktivitas selama 5 menit (idle timeout).</p>
+        <p class="hint">Passphrase otomatis dihapus bila idle 5 menit.</p>
       </div>
 
       <form id="note-form">

@@ -1,10 +1,10 @@
-// === DASHBOARD PAGE (CHANNEL) ===
+// === DASHBOARD PAGE (E2E notes) ===
 const statusEl = document.getElementById("status");
 function setStatus(msg) { statusEl.textContent = msg || ""; }
 function show(elm, show) { if (show) elm.classList.remove("hidden"); else elm.classList.add("hidden"); }
 
 let currentUser = null;
-let passphrase = null; // hanya di memori, tidak disimpan
+let passphrase = null; // hanya di memori
 
 const passphraseInput = document.getElementById("enc-passphrase");
 const btnSetPass = document.getElementById("btn-set-passphrase");
@@ -16,12 +16,11 @@ const logoutBtn = document.getElementById("btn-logout");
 
 let idleTimer = null;
 const IDLE_MS = 5 * 60 * 1000; // 5 menit
-
 function resetIdleTimer() {
   if (idleTimer) clearTimeout(idleTimer);
   idleTimer = setTimeout(() => {
     passphrase = null;
-    setStatus("Passphrase dihapus (idle timeout). Masukkan lagi untuk dekripsi/menyimpan.");
+    setStatus("Passphrase dihapus (idle timeout).");
   }, IDLE_MS);
 }
 ["click","keydown","mousemove","touchstart","scroll"].forEach(evt => {
@@ -32,10 +31,7 @@ resetIdleTimer();
 async function guard() {
   const { data } = await supabase.auth.getSession();
   currentUser = data?.session?.user ?? null;
-  if (!currentUser) {
-    window.location.href = "index.html";
-    return false;
-  }
+  if (!currentUser) { window.location.href = "index.html"; return false; }
   return true;
 }
 
@@ -47,10 +43,7 @@ btnSetPass.addEventListener("click", () => {
   setStatus("Passphrase aktif di memori.");
   resetIdleTimer();
 });
-btnClearPass.addEventListener("click", () => {
-  passphrase = null;
-  setStatus("Passphrase dihapus dari memori.");
-});
+btnClearPass.addEventListener("click", () => { passphrase = null; setStatus("Passphrase dihapus dari memori."); });
 
 async function loadNotes() {
   setStatus("Memuat catatan...");
@@ -69,7 +62,7 @@ async function loadNotes() {
     li.addEventListener("click", async () => {
       try {
         if (!passphrase) { alert("Masukkan passphrase enkripsi terlebih dahulu."); return; }
-        const plain = await decryptText(
+        const plain = await _secureCommon.decryptText(
           { ciphertext: li.dataset.ciphertext, iv: li.dataset.iv, salt: li.dataset.salt },
           passphrase
         );
@@ -87,7 +80,7 @@ noteForm.addEventListener("submit", async (e) => {
   if (!passphrase) { setStatus("Set passphrase enkripsi dulu."); return; }
   setStatus("Menyimpan catatan terenkripsi...");
   try {
-    const payload = await encryptText(text, passphrase);
+    const payload = await _secureCommon.encryptText(text, passphrase);
     const { error } = await supabase.from("notes").insert({
       user_id: currentUser.id,
       content_ciphertext: payload.ciphertext,
@@ -101,26 +94,13 @@ noteForm.addEventListener("submit", async (e) => {
   } catch (err) { setStatus("Gagal menyimpan: " + err.message); }
 });
 
-document.getElementById("btn-logout").addEventListener("click", async () => {
+logoutBtn.addEventListener("click", async () => {
   passphrase = null;
   await supabase.auth.signOut();
   window.location.href = "index.html";
 });
 
-document.addEventListener("visibilitychange", () => {
-  if (document.hidden) {
-    passphrase = null; // hapus saat tab disembunyikan
-  }
-});
+document.addEventListener("visibilitychange", () => { if (document.hidden) passphrase = null; });
 
-// Init
-(async () => {
-  if (await guard()) {
-    await loadNotes();
-  }
-})();
-
-supabase.auth.onAuthStateChange((_event, session) => {
-  currentUser = session?.user || null;
-  if (!currentUser) window.location.href = "index.html";
-});
+(async () => { if (await guard()) await loadNotes(); })();
+supabase.auth.onAuthStateChange((_event, session) => { if (!session?.user) window.location.href = "index.html"; });

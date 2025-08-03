@@ -3,7 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src https://*.supabase.co https://*.supabase.net; img-src 'self' data:; style-src 'self'; script-src 'self' https://cdn.jsdelivr.net; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self';
+connect-src 'self' https://*.supabase.co https://*.supabase.net wss://*.supabase.co wss://*.supabase.net;
+img-src 'self' data:;
+style-src 'self';
+script-src 'self' https://cdn.jsdelivr.net;
+frame-ancestors 'none';
+base-uri 'none';
+form-action 'self';
+upgrade-insecure-requests">
   <meta name="referrer" content="no-referrer">
   <title>Login - Secure Notes</title>
   <link rel="stylesheet" href="style.css"/>
@@ -13,18 +21,18 @@
     <h1>Masuk ke Secure Notes</h1>
     <section>
       <form id="auth-form" onsubmit="return false;" autocomplete="off">
-        <label>Username
-          <input type="text" id="username" placeholder="username" required autocomplete="off" />
+        <label>Email
+          <input type="email" id="email" placeholder="admin@infernostudios.com" required autocomplete="username" />
         </label>
         <label>Password
-          <input type="password" id="password" placeholder="••••••••" required autocomplete="new-password" />
+          <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password" />
         </label>
         <div class="row">
           <button id="btn-login" type="button">Masuk</button>
         </div>
       </form>
       <p class="hint">
-        Setelah login sukses, Anda akan dialihkan ke <b>Dashboard</b> (channel).
+        Tidak ada pendaftaran akun di sini. Gunakan akun yang sudah dibuat di Supabase.
       </p>
       <p id="status"></p>
     </section>
