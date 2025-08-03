@@ -3,23 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self';
-connect-src 'self' https://*.supabase.co https://*.supabase.net wss://*.supabase.co wss://*.supabase.net;
-img-src 'self' data:;
-style-src 'self';
-script-src 'self' https://cdn.jsdelivr.net;
-frame-ancestors 'none';
-base-uri 'none';
-form-action 'self';
-upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self';connect-src 'self' https: wss:;img-src 'self' data:;style-src 'self';script-src 'self' https://cdn.jsdelivr.net;frame-ancestors 'none';base-uri 'none';form-action 'self';upgrade-insecure-requests">
   <meta name="referrer" content="no-referrer">
-  <title>Dashboard - Secure Notes</title>
+  <title>Dashboard - Secure Notes (Diagnostics)</title>
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
   <main>
     <div class="row" style="justify-content:space-between;align-items:center;">
-      <h1>Dashboard</h1>
+      <h1>Dashboard (Diagnostics)</h1>
       <button id="btn-logout" class="secondary">Keluar</button>
     </div>
 
@@ -33,7 +25,6 @@ upgrade-insecure-requests">
           <button id="btn-set-passphrase">Pakai Passphrase</button>
           <button id="btn-clear-passphrase" class="secondary">Hapus dari Memori</button>
         </div>
-        <p class="hint">Passphrase otomatis dihapus bila idle 5 menit.</p>
       </div>
 
       <form id="note-form">

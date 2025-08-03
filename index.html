@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta http-equiv="Content-Security-Policy" content="default-src 'self';
-connect-src 'self' https://*.supabase.co https://*.supabase.net wss://*.supabase.co wss://*.supabase.net;
+connect-src 'self' https: wss:;  /* DEBUG: allow all HTTPS/WSS (narrow once fixed) */
 img-src 'self' data:;
 style-src 'self';
 script-src 'self' https://cdn.jsdelivr.net;
@@ -13,7 +13,7 @@ base-uri 'none';
 form-action 'self';
 upgrade-insecure-requests">
   <meta name="referrer" content="no-referrer">
-  <title>Login - Secure Notes</title>
+  <title>Login - Secure Notes (Diagnostics)</title>
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
@@ -29,11 +29,13 @@ upgrade-insecure-requests">
         </label>
         <div class="row">
           <button id="btn-login" type="button">Masuk</button>
+          <button id="btn-diagnose" class="secondary" type="button">Diagnosa</button>
         </div>
       </form>
       <p class="hint">
-        Tidak ada pendaftaran akun di sini. Gunakan akun yang sudah dibuat di Supabase.
+        Build diagnostik: sementara longgarkan CSP <code>connect-src</code> ke semua <code>https:</code>/<code>wss:</code> untuk uji. Setelah OK, pakai build secure.
       </p>
+      <pre id="diag" style="white-space:pre-wrap;background:#0b1220;border:1px dashed #334155;border-radius:8px;padding:8px;max-height:260px;overflow:auto"></pre>
       <p id="status"></p>
     </section>
   </main>
