@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Demo Login + Notes Terenkripsi</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <main>
+    <h1>Demo: Login + Catatan Terenkripsi</h1>
+
+    <section id="auth">
+      <h2>Masuk / Daftar</h2>
+      <form id="auth-form">
+        <label>
+          Email
+          <input type="email" id="email" required placeholder="email@contoh.com"/>
+        </label>
+        <label>
+          Password
+          <input type="password" id="password" required placeholder="••••••••"/>
+        </label>
+        <div class="row">
+          <button type="button" id="btn-signup">Daftar</button>
+          <button type="button" id="btn-login">Masuk</button>
+          <button type="button" id="btn-logout" class="secondary">Keluar</button>
+        </div>
+      </form>
+      <p class="hint">
+        Catatan Anda akan <b>dienkripsi di browser</b> sebelum disimpan ke database. Server hanya menyimpan ciphertext.
+      </p>
+      <p id="status"></p>
+    </section>
+
+    <section id="notes" class="hidden">
+      <h2>Catatan Saya</h2>
+
+      <div id="decrypt-box" class="hidden">
+        <p>Masukkan password untuk mendekripsi catatan yang sudah ada.</p>
+        <input type="password" id="decrypt-password" placeholder="Password untuk dekripsi"/>
+        <button id="btn-decrypt-all">Dekripsi Semua</button>
+      </div>
+
+      <form id="note-form">
+        <textarea id="note-input" rows="3" placeholder="Tulis catatan..."></textarea>
+        <button type="submit">Simpan Catatan (terenkripsi)</button>
+      </form>
+
+      <ul id="note-list"></ul>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="app.js"></script>
+</body>
+</html>
