@@ -7,8 +7,8 @@ const { createClient } = window.supabase;
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Username-only mapping (UI gate; keamanan tetap pada Supabase Auth + RLS)
-const ALLOWED_USERNAME = "adminis";
-const EMAIL_ALIAS_DOMAIN = "example.local";
+const ALLOWED_USERNAME = "admin";
+const EMAIL_ALIAS_DOMAIN = "infernostudios.com";
 const usernameToEmail = (u) => `${u}@${EMAIL_ALIAS_DOMAIN}`;
 
 // === Crypto helpers (Web Crypto) ===
