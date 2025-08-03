@@ -1,7 +1,7 @@
 // === KONFIGURASI SUPABASE ===
 // Ganti nilai berikut dengan kredensial proyek Anda
-const SUPABASE_URL = "https://YOUR-PROJECT-REF.supabase.co";
-const SUPABASE_ANON_KEY = "YOUR_PUBLIC_ANON_KEY";
+const SUPABASE_URL = "https://ucvvgppywnkgoxlqxkpn.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjdnZncHB5d25rZ294bHF4a3BuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyMjAxODYsImV4cCI6MjA2OTc5NjE4Nn0.DFEXqKTki567d72z0IiQOFZaSzGUEz_stma9NodZLJw";
 
 // Inisialisasi klien
 const { createClient } = window.supabase;
