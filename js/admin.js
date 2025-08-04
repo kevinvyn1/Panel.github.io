@@ -1,9 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { SUPABASE_URL, SUPABASE_ANON_KEY, SESSION_INACTIVITY_MINUTES, REQUIRE_ADMIN, DATA_PROVIDER, SHEET_API_URL, SHEET_TOKEN } from './config.js';
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: false }
-});
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: false } });
 
 window.addEventListener('contextmenu', e => e.preventDefault(), { passive:false });
 
@@ -17,14 +15,13 @@ const btnLogout = document.getElementById('btn-logout');
 const btnReload = document.getElementById('btn-reload');
 const indicator = document.getElementById('source-indicator');
 
+indicator.textContent = `Sumber data: Google Sheets (JSONP)`;
+
 btnLogout.addEventListener('click', async () => { await supabase.auth.signOut(); window.location.replace('index.html'); });
 btnOpen.addEventListener('click', () => modal.showModal());
 btnCancel.addEventListener('click', () => modal.close());
 btnReload.addEventListener('click', () => loadTable());
 
-indicator.textContent = `Sumber data: ${DATA_PROVIDER === 'sheet' ? 'Google Sheets' : 'Supabase'}`;
-
-// Provider: Supabase (tetap dipakai untuk Auth & cek admin)
 async function ensureAuth(){
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) { window.location.replace('index.html'); return null; }
@@ -36,33 +33,29 @@ async function ensureAuth(){
   return session;
 }
 
-// === Google Sheets (Apps Script Web App) ===
-async function sheetList(){
-  const url = new URL(SHEET_API_URL);
-  url.searchParams.set('token', SHEET_TOKEN);
-  const res = await fetch(url.toString(), { method:'GET' });
-  if (!res.ok) throw new Error('Gagal memuat sheet');
-  return await res.json();
-}
-async function sheetInsert(payload){
-  const body = new URLSearchParams({ token: SHEET_TOKEN, ...payload, flag: payload.flag ? '1' : '0' });
-  const res = await fetch(SHEET_API_URL, {
-    method:'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-    body
+// === JSONP helper untuk GET (hindari CORS) ===
+function jsonp(url){
+  return new Promise((resolve, reject) => {
+    const cb = 'cb_'+Math.random().toString(36).slice(2);
+    const s = document.createElement('script');
+    window[cb] = (data) => { resolve(data); delete window[cb]; s.remove(); };
+    s.onerror = () => { reject(new Error('JSONP error')); delete window[cb]; s.remove(); };
+    s.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + cb;
+    document.body.appendChild(s);
   });
-  if (!res.ok) throw new Error('Gagal simpan sheet');
-  return await res.json().catch(()=>({ok:true}));
 }
 
-// === Supabase data provider (jika dipilih) ===
-async function sbList(){
-  const { data, error } = await supabase.from('whitelist').select('*').order('created_at', { ascending:false }).limit(200);
-  if (error) throw error; return data;
+async function sheetList(){
+  const url = `${SHEET_API_URL}?token=${encodeURIComponent(SHEET_TOKEN)}`;
+  const data = await jsonp(url);
+  return data;
 }
-async function sbInsert(payload){
-  const { error } = await supabase.from('whitelist').insert(payload).single();
-  if (error) throw error; return { ok:true };
+
+async function sheetInsert(payload){
+  // POST tanpa CORS: kirim sebagai x-www-form-urlencoded & tidak membaca response
+  const body = new URLSearchParams({ token: SHEET_TOKEN, ...payload, flag: payload.flag ? '1':'0' });
+  await fetch(SHEET_API_URL, { method:'POST', mode:'no-cors', headers:{ 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' }, body });
+  return { ok:true };
 }
 
 function rowHTML(r){
@@ -71,14 +64,14 @@ function rowHTML(r){
     <td>${r.angka ?? ''}</td>
     <td>${Number(r.flag) ? 1 : 0}</td>
     <td>${(r.nama ?? '').replace(/[<>]/g,'')}</td>
-    <td>${r.created_at ? new Date(r.created_at).toLocaleString() : ''}</td>
+    <td>${r.created_at ?? ''}</td>
   </tr>`;
 }
 
 async function loadTable(){
   tbody.innerHTML = `<tr><td colspan="5" class="muted center">Memuat…</td></tr>`;
   try{
-    const data = (DATA_PROVIDER === 'sheet') ? await sheetList() : await sbList();
+    const data = await sheetList();
     if (!data || data.length === 0){ tbody.innerHTML = `<tr><td colspan="5" class="center muted">Belum ada data.</td></tr>`; return; }
     tbody.innerHTML = data.map(rowHTML).join('');
   }catch(err){
@@ -97,9 +90,10 @@ form.addEventListener('submit', async (e) => {
     nama: document.getElementById('f-nama').value.trim()
   };
   try{
-    const res = (DATA_PROVIDER === 'sheet') ? await sheetInsert(payload) : await sbInsert(payload);
-    createState.textContent = 'Berhasil disimpan.';
-    form.reset(); modal.close(); await loadTable();
+    await sheetInsert(payload);
+    createState.textContent = 'Berhasil disimpan (cek ulang)…';
+    form.reset(); modal.close();
+    setTimeout(loadTable, 800); // beri waktu appendRow tereksekusi
   }catch(err){
     console.error(err);
     createState.textContent = 'Gagal menyimpan.';
@@ -113,5 +107,4 @@ setInterval(async () => {
   if ((Date.now()-last)/60000 > SESSION_INACTIVITY_MINUTES){ await supabase.auth.signOut(); window.location.replace('index.html'); }
 }, 15000);
 
-// Init
 (async () => { const session = await ensureAuth(); if (session) await loadTable(); })();

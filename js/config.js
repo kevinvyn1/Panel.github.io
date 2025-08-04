@@ -1,4 +1,3 @@
-// Salin file ini menjadi js/config.js lalu isi kredensial proyek Anda.
 // Salin file ini menjadi js/config.js lalu isi dengan kredensial proyek Anda.
 // Perhatian: HANYA gunakan ANON KEY di sisi klien. JANGAN pernah mengekspos service_role key.
 export const SUPABASE_URL = "https://lnmlsrvdjnhnfrcmnqgr.supabase.co";
