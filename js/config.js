@@ -3,7 +3,7 @@ export const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 export const SESSION_INACTIVITY_MINUTES = 15;
 export const REQUIRE_ADMIN = true;
 
-// CAPTCHA opsional
+// CAPTCHA opsionals
 export const CAPTCHA_PROVIDER = "hcaptcha"; // 'turnstile' | 'hcaptcha' | ''
 export const CAPTCHA_SITE_KEY = "d87070f2-8a06-40aa-90d8-e186f224c03a";
 
