@@ -1,51 +1,27 @@
-# GitHub Pages + Supabase Secure Starter (Login + Admin Whitelist)
+# Supabase + Google Sheets (Apps Script) Integration
 
-Proyek ini adalah starter **situs statis** (GitHub Pages) dengan autentikasi **Supabase Auth**, panel admin, **RLS** aktif, dan integrasi **Bot Protection** (Turnstile/hCaptcha).
+Opsi ini membuat **website statis** tetap memakai **Supabase untuk autentikasi & cek admin**, tetapi **data whitelist dibaca/ditulis dari Google Sheets** melalui **Google Apps Script Web App** (aman karena kredensial Sheets tidak ada di klien).
 
-## Langkah Cepat
+## Setup Apps Script
+1. Buat Google Spreadsheet → tambah sheet bernama **Whitelist** dengan header baris 1:
+   - A `user_id`
+   - B `angka`
+   - C `flag` (1/0)
+   - D `nama`
+   - E `created_at`
+2. Buka **Extensions → Apps Script** → buat file `Code.gs` dan tempel isi `integrations/apps_script/Code.gs`.
+3. Ganti `TOKEN` pada `Code.gs` (string rahasia bersama).
+4. **Deploy**: `Deploy → New deployment → type Web app → Execute as: Me → Who has access: Anyone`. Salin **Web app URL**.
+5. Di repo: salin `js/config.example.js` → `js/config.js`, isi:
+   - `DATA_PROVIDER = 'sheet'`
+   - `SHEET_API_URL = '<Web app URL>'`
+   - `SHEET_TOKEN = '<TOKEN yang sama>'`
+   - Tetap isi `SUPABASE_URL` & `SUPABASE_ANON_KEY` untuk autentikasi & cek admin.
 
-1) **Supabase**
-- Buat proyek → **SQL Editor** → jalankan `sql/schema.sql` lalu `sql/policies.sql`.
-- Tambahkan admin pertama (ganti UUID dari `auth.users.id`):
-  ```sql
-  insert into public.admins (user_id) values ('<UUID>');
-  ```
-- **Auth → Settings → Sessions**: atur **Inactivity timeout** & **Time-box sessions**.
-- **Auth → Settings → Bot Protection**: pilih **Turnstile** atau **hCaptcha** (sesuai yang akan Anda pakai di klien).
+## Pakai Supabase saja?
+Set `DATA_PROVIDER = 'supabase'` → panel admin pakai tabel `public.whitelist` (SQL & policy disediakan di folder `sql/`).
 
-2) **Klien (Repo GitHub Pages)**
-- Salin `js/config.example.js` → `js/config.js`, isi:
-  - `SUPABASE_URL`, `SUPABASE_ANON_KEY`
-  - `CAPTCHA_PROVIDER` = `"turnstile"` atau `"hcaptcha"`
-  - `CAPTCHA_SITE_KEY` = site key dari provider terpilih
-- Push ke GitHub. Aktifkan **GitHub Pages** (branch `main`/root).
-
-3) **Login**
-- Buka `index.html`, isi email & password (username dipetakan ke email).  
-- Jika Bot Protection ON, selesaikan captcha; token akan dikirim via `options: { captchaToken }` ke Supabase.
-
-## Catatan Keamanan
-- **JANGAN** memaparkan `service_role` key di klien; gunakan **anon key** + **RLS**.
-- GitHub Pages tidak mendukung header kustom, sehingga CSP dipasang via `<meta>`. Direktif `frame-ancestors` memang akan diabaikan—sudah dihapus dari template.
-- Anti‑scraping di sini hanya penghalang ringan (bisa dibypass). Fokus utama tetap **RLS**, input validation, dan CSP.
-- Untuk cookie HttpOnly/SameSite, dibutuhkan layer server. Supabase JS menyimpan sesi di storage—mitigasi dengan CSP & minim script pihak ketiga.
-
-## Struktur
-```
-/
-├─ index.html        # login + captcha dinamis
-├─ admin.html        # panel admin (tabel whitelist + modal tambah)
-├─ assets/styles.css # tema merah→hitam, responsif
-├─ js/
-│  ├─ app.js         # login, captcha, anti-scraping, timeout
-│  ├─ admin.js       # CRUD whitelist, cek admin, timeout
-│  ├─ config.example.js
-├─ sql/
-│  ├─ schema.sql     # tabel + enable RLS
-│  └─ policies.sql   # kebijakan RLS (admin-only)
-└─ README.md
-```
-
-## Lanjutkan
-- Ingin login **username** (bukan email)? Tambah tabel `profiles` & RLS/Edge Function.
-- Tambahkan **PGAudit** untuk audit logging dan atur **PITR** untuk backup berkala.
+## Catatan
+- Apps Script Web App dengan `Content-Type: application/x-www-form-urlencoded` menghindari preflight, sehingga **GitHub Pages** bisa `fetch` langsung.
+- Amankan URL dengan `TOKEN` unik dan batasi alamat spreadsheet via proteksi berbasis akun Google Anda.
+- Kalau membutuhkan audit/backup: tetap simpan salinan ke Supabase via Edge Function/cron atau buat mekanisme impor/ekspor.

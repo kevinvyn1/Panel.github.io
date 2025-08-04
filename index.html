@@ -8,7 +8,7 @@
   <!-- CSP via meta (GitHub Pages tidak mendukung header kustom) -->
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; base-uri 'none';
-                 connect-src 'self' https://*.supabase.co https://challenges.cloudflare.com https://*.hcaptcha.com https://hcaptcha.com;
+                 connect-src 'self' https://*.supabase.co https://script.google.com https://script.googleusercontent.com https://challenges.cloudflare.com https://*.hcaptcha.com https://hcaptcha.com;
                  img-src 'self' data:; font-src 'self' data:;
                  style-src 'self' 'unsafe-inline';
                  script-src 'self' https://esm.sh https://challenges.cloudflare.com https://hcaptcha.com https://*.hcaptcha.com;
@@ -38,7 +38,6 @@
           </div>
         </label>
 
-        <!-- Slot CAPTCHA akan dirender dinamis oleh app.js berdasarkan config -->
         <div id="captcha-slot" style="margin:.5rem 0;"></div>
 
         <button id="btn-login" class="btn" type="submit">Login</button>
@@ -47,7 +46,7 @@
     </section>
 
     <footer class="foot">
-      <small>© <span id="y"></span> — Demo Admin Panel (GitHub Pages + Supabase)</small>
+      <small>© <span id="y"></span> — Demo Admin Panel (GitHub Pages + Supabase + Sheets)</small>
     </footer>
   </main>
 
