@@ -10,6 +10,7 @@
                  img-src 'self' data:; font-src 'self' data:;
                  style-src 'self' 'unsafe-inline';
                  script-src 'self' https://esm.sh https://challenges.cloudflare.com https://hcaptcha.com https://*.hcaptcha.com;
+                 script-src-elem 'self' https://esm.sh https://challenges.cloudflare.com https://hcaptcha.com https://*.hcaptcha.com;
                  frame-src https://challenges.cloudflare.com https://*.hcaptcha.com https://hcaptcha.com;
                  upgrade-insecure-requests">
   <link rel="stylesheet" href="assets/styles.css" />
@@ -20,17 +21,8 @@
       <h1 class="title">Masuk</h1>
       <p class="subtitle">Gunakan akun yang terdaftar di Supabase</p>
       <form id="login-form" autocomplete="off" novalidate>
-        <label class="field">
-          <span>Username (email)</span>
-          <input id="username" name="username" type="email" required placeholder="nama@domain.com" inputmode="email" />
-        </label>
-        <label class="field">
-          <span>Kata sandi</span>
-          <div class="password-wrap">
-            <input id="password" name="password" type="password" required minlength="8" />
-            <button type="button" id="toggle-pass" aria-label="Tampilkan/Sembunyikan Password">👁</button>
-          </div>
-        </label>
+        <label class="field"><span>Username (email)</span><input id="username" name="username" type="email" required placeholder="nama@domain.com" inputmode="email" /></label>
+        <label class="field"><span>Kata sandi</span><div class="password-wrap"><input id="password" name="password" type="password" required minlength="8" /><button type="button" id="toggle-pass" aria-label="Tampilkan/Sembunyikan Password">👁</button></div></label>
         <div id="captcha-slot" style="margin:.5rem 0;"></div>
         <button id="btn-login" class="btn" type="submit">Login</button>
         <div id="login-state" class="state" role="status" aria-live="polite"></div>

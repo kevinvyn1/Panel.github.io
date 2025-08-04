@@ -1,15 +1,58 @@
-// Apps Script Web App (JSONP + Spreadsheet ID)
+// Apps Script Web App (target by GID + no auto-create)
 const SPREADSHEET_ID = 'PUT_YOUR_SPREADSHEET_ID_HERE';
-const SHEET_NAME     = 'WLS (ANT)';
+const SHEET_GID      = 0; // ganti sesuai gid tab
 const TOKEN          = 'SHARED_TOKEN';
-function _sheet_(){ const ss=SpreadsheetApp.openById(SPREADSHEET_ID); let sh=ss.getSheetByName(SHEET_NAME);
-  if(!sh){ sh=ss.insertSheet(SHEET_NAME); sh.getRange(1,1,1,5).setValues([['user_id','angka','flag','nama','created_at']]); } return sh; }
-function doGet(e){ if(!e||e.parameter.token!==TOKEN) return _forbidden_(); const sh=_sheet_(); const values=sh.getDataRange().getDisplayValues();
-  let data=[]; if(values.length>1){ const [hdr,...rows]=values; const idx={user_id:0,angka:1,flag:2,nama:3,created_at:4};
-    data=rows.filter(r=>(r[idx.user_id]||'').trim()!=='').map(r=>({ user_id:r[idx.user_id], angka:Number(r[idx.angka]||0), flag:(String(r[idx.flag]).trim()==='1'||String(r[idx.flag]).toLowerCase()==='true'), nama:r[idx.nama], created_at:r[idx.created_at] })); }
-  const cb=e.parameter.callback; const payload=JSON.stringify(data); if(cb){ return ContentService.createTextOutput(`${cb}(${payload})`).setMimeType(ContentService.MimeType.JAVASCRIPT); }
-  return ContentService.createTextOutput(payload).setMimeType(ContentService.MimeType.JSON); }
-function doPost(e){ if(!e||(e.parameter.token!==TOKEN)) return _forbidden_(); const user_id=(e.parameter.user_id||'').trim(); const angka=Number(e.parameter.angka||0); const flag=String(e.parameter.flag||'0')==='1'; const nama=(e.parameter.nama||'').trim();
-  if(!user_id||!nama) return _json_({ok:false,error:'invalid_input'}); const sh=_sheet_(); sh.appendRow([user_id, angka, flag?1:0, nama, new Date()]); return _json_({ok:true}); }
+const CREATED_AT_COL = 0; // set 5 kalau mau timestamp ke kolom E
+
+function _sheet_(){
+  const ss=SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheets=ss.getSheets();
+  for (const s of sheets){ if(s.getSheetId()===SHEET_GID) return s; }
+  throw new Error('sheet_not_found');
+}
+
+function _outJSONP(e,p){
+  const s=JSON.stringify(p);
+  const cb=e&&e.parameter&&e.parameter.callback;
+  if(cb) return ContentService.createTextOutput(`${cb}(${s})`).setMimeType(ContentService.MimeType.JAVASCRIPT);
+  return ContentService.createTextOutput(s).setMimeType(ContentService.MimeType.JSON);
+}
 function _json_(o){ return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
 function _forbidden_(){ return ContentService.createTextOutput('forbidden').setMimeType(ContentService.MimeType.TEXT); }
+
+function doGet(e){
+  try{
+    if(!e||e.parameter.token!==TOKEN) return _forbidden_();
+    const sh=_sheet_();
+    const lastRow=sh.getLastRow();
+    if(lastRow<1) return _outJSONP(e,[]);
+    const values=sh.getRange(1,1,lastRow,Math.min(4,sh.getLastColumn())).getDisplayValues();
+    const data=[];
+    for(let i=0;i<values.length;i++){
+      const r=values[i]; const uid=String(r[0]||'').trim();
+      if(!uid) continue;
+      data.push({ user_id:uid, angka:String(r[1]||'').trim(), flag:String(r[2]||'0').trim()==='1'||String(r[2]||'').toLowerCase()==='true', nama:String(r[3]||'').trim(), created_at:'' });
+    }
+    return _outJSONP(e,data);
+  }catch(err){
+    return _json_({ ok:false, error:String(err) });
+  }
+}
+
+function doPost(e){
+  try{
+    if(!e||e.parameter.token!==TOKEN) return _forbidden_();
+    const user_id=String(e.parameter.user_id||'').trim();
+    const angka=String(e.parameter.angka||'').trim();
+    const flag=String(e.parameter.flag||'0')==='1';
+    const nama=String(e.parameter.nama||'').trim();
+    if(!user_id||!nama) return _json_({ok:false,error:'invalid_input'});
+    const sh=_sheet_();
+    const nextRow=sh.getLastRow()+1;
+    sh.getRange(nextRow,1,1,4).setValues([[user_id, angka, flag?1:0, nama]]);
+    if(CREATED_AT_COL>0) sh.getRange(nextRow,CREATED_AT_COL).setValue(new Date());
+    return _json_({ok:true});
+  }catch(err){
+    return _json_({ ok:false, error:String(err) });
+  }
+}

@@ -9,7 +9,8 @@
                  connect-src 'self' https://*.supabase.co https://script.google.com https://script.googleusercontent.com;
                  img-src 'self' data:; font-src 'self' data:;
                  style-src 'self' 'unsafe-inline';
-                 script-src 'self' https://esm.sh;
+                 script-src 'self' https://esm.sh https://script.google.com;
+                 script-src-elem 'self' https://esm.sh https://script.google.com;
                  upgrade-insecure-requests">
   <link rel="stylesheet" href="assets/styles.css" />
 </head>
@@ -30,7 +31,7 @@
         </div>
       </header>
       <div id="table-wrap" class="table-wrap">
-        <table class="table" id="whitelist-table" aria-describedby="table-desc">
+        <table class="table" id="whitelist-table">
           <thead><tr><th>UserID</th><th>Angka</th><th>1/0</th><th>Nama</th><th>Dibuat</th></tr></thead>
           <tbody id="whitelist-body"><tr><td colspan="5" class="muted center">Memuat data…</td></tr></tbody>
         </table>
