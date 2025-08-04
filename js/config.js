@@ -11,5 +11,5 @@ export const CAPTCHA_SITE_KEY = "d87070f2-8a06-40aa-90d8-e186f224c03a";
 export const DATA_PROVIDER = 'sheet';
 
 // Jika 'sheet'
-export const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbwhA49ofqMTjcmZT40H3RbpYN95TmORaYQOb5bYf9bfccYbzK1Dww9-f7kxNnYiKc5J/exec";
+export const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxsW3mF8uaALNlQS3ZiT5KZ_8BVSSTXDoB786QxuiMgX-2t2scEW0IpYJRxo2T9HdhV/exec";
 export const SHEET_TOKEN   = "2099812378781239012221";
