@@ -1,4 +1,4 @@
-/* Gradient merah → hitam, responsive, anti‑seleksi dasar */
+/* Tema merah→hitam, responsif, anti‑seleksi */
 :root{
   --bg:#0a0004;
   --card:#1b0202;
@@ -17,11 +17,7 @@ body{
   -webkit-font-smoothing: antialiased;
 }
 
-.no-select{
-  user-select: none;
-  -webkit-user-select: none;
-  -ms-user-select: none;
-}
+.no-select{ user-select: none; -webkit-user-select: none; -ms-user-select: none; }
 
 .container{ width:min(92vw, var(--max)); margin: 6vh auto; }
 .card{
@@ -88,3 +84,6 @@ input, select{
   .container{ margin: 3vh auto; }
   .topbar h1{ font-size:1.2rem; }
 }
+
+/* util untuk aksesibilitas */
+.visually-hidden{ position:absolute; width:1px; height:1px; margin:-1px; border:0; padding:0; clip:rect(0 0 0 0); overflow:hidden; }

@@ -1,56 +1,51 @@
-# GitHub Pages + Supabase Starter (Login + Admin Whitelist)
+# GitHub Pages + Supabase Secure Starter (Login + Admin Whitelist)
 
-Proyek ini adalah starter **situs statis** (GitHub Pages) dengan autentikasi **Supabase Auth** dan panel admin sederhana untuk mengelola tabel `whitelist`.
+Proyek ini adalah starter **situs statis** (GitHub Pages) dengan autentikasi **Supabase Auth**, panel admin, **RLS** aktif, dan integrasi **Bot Protection** (Turnstile/hCaptcha).
 
-## Cara Pakai
+## Langkah Cepat
 
-1. **Duplikasi** repo ini ke GitHub Anda (atau unduh ZIP lalu unggah).
-2. Di Supabase:
-   - Buat proyek baru.
-   - Buka **SQL Editor** dan jalankan `sql/schema.sql` lalu `sql/policies.sql`.
-   - Tambahkan **user admin** ke tabel `admins` via SQL Editor, misalnya:
-     ```sql
-     insert into public.admins (user_id) values ('<UUID auth.users.id>'); 
-     ```
-   - Di **Auth → Settings** atur **Inactivity timeout** dan **Time-box sessions** sesuai kebutuhan.
-   - (Opsional) Aktifkan **CAPTCHA** untuk sign-in/sign-up/reset.
-3. Salin `js/config.example.js` menjadi `js/config.js`, isi `SUPABASE_URL` dan `SUPABASE_ANON_KEY`.
-4. Aktifkan **GitHub Pages** (branch `main` / folder root). Situs otomatis **HTTPS**.
-5. Buka `index.html` untuk login, setelah itu diarahkan ke `admin.html`.
+1) **Supabase**
+- Buat proyek → **SQL Editor** → jalankan `sql/schema.sql` lalu `sql/policies.sql`.
+- Tambahkan admin pertama (ganti UUID dari `auth.users.id`):
+  ```sql
+  insert into public.admins (user_id) values ('<UUID>');
+  ```
+- **Auth → Settings → Sessions**: atur **Inactivity timeout** & **Time-box sessions**.
+- **Auth → Settings → Bot Protection**: pilih **Turnstile** atau **hCaptcha** (sesuai yang akan Anda pakai di klien).
 
-> **Catatan “username”:** Supabase Auth standar menggunakan email/phone. Starter ini memetakan kolom *username* ke **email**. Untuk login benar‑benar via *username*, Anda perlu menambah tabel `profiles` (publik) yang memetakan `username→email` dan kebijakan RLS yang aman, atau menambahkan endpoint server/Edge Function.
+2) **Klien (Repo GitHub Pages)**
+- Salin `js/config.example.js` → `js/config.js`, isi:
+  - `SUPABASE_URL`, `SUPABASE_ANON_KEY`
+  - `CAPTCHA_PROVIDER` = `"turnstile"` atau `"hcaptcha"`
+  - `CAPTCHA_SITE_KEY` = site key dari provider terpilih
+- Push ke GitHub. Aktifkan **GitHub Pages** (branch `main`/root).
 
-## Keamanan & Batasan di Situs Statis
+3) **Login**
+- Buka `index.html`, isi email & password (username dipetakan ke email).  
+- Jika Bot Protection ON, selesaikan captcha; token akan dikirim via `options: { captchaToken }` ke Supabase.
 
-- **RLS wajib** di semua tabel yang diakses dari klien.
-- **Jangan pernah** mengekspos `service_role` key. Gunakan **anon key** saja.
-- **Cookie HttpOnly/SameSite** tidak bisa dipasang dari JS di situs statis. Supabase JS menyimpan sesi di `localStorage`. Mitigasi: **CSP ketat**, tidak ada inline script, sanitasi input, dan batasi izin Data API via RLS.
-- **Rate limiting**: andalkan rate limit Auth bawaan Supabase + throttle di klien. Untuk kebutuhan lanjutan, taruh reverse‑proxy (mis. Cloudflare) atau gateway.
-- **Anti‑scraping / DevTools detection** hanya penghalang ringan dan bisa dibypass.
-- **Enkripsi kolom**: pertimbangkan `pgcrypto` untuk enkripsi selektif di server‑side. Hindari menyimpan rahasia enkripsi di klien.
+## Catatan Keamanan
+- **JANGAN** memaparkan `service_role` key di klien; gunakan **anon key** + **RLS**.
+- GitHub Pages tidak mendukung header kustom, sehingga CSP dipasang via `<meta>`. Direktif `frame-ancestors` memang akan diabaikan—sudah dihapus dari template.
+- Anti‑scraping di sini hanya penghalang ringan (bisa dibypass). Fokus utama tetap **RLS**, input validation, dan CSP.
+- Untuk cookie HttpOnly/SameSite, dibutuhkan layer server. Supabase JS menyimpan sesi di storage—mitigasi dengan CSP & minim script pihak ketiga.
 
 ## Struktur
-
 ```
 /
-├─ index.html        # halaman login
+├─ index.html        # login + captcha dinamis
 ├─ admin.html        # panel admin (tabel whitelist + modal tambah)
 ├─ assets/styles.css # tema merah→hitam, responsif
 ├─ js/
-│  ├─ app.js         # login, anti-scraping ringan, timeout klien
-│  ├─ admin.js       # CRUD whitelist, cek admin, timeout klien
+│  ├─ app.js         # login, captcha, anti-scraping, timeout
+│  ├─ admin.js       # CRUD whitelist, cek admin, timeout
 │  ├─ config.example.js
 ├─ sql/
-│  ├─ schema.sql     # tabel dan enable RLS
+│  ├─ schema.sql     # tabel + enable RLS
 │  └─ policies.sql   # kebijakan RLS (admin-only)
+└─ README.md
 ```
 
-## Checklist Keamanan Tambahan
-
-- MFA/2FA untuk admin (TOTP).
-- Audit logging dengan **PGAudit**.
-- Backup otomatis (Daily / PITR) + workflow GitHub Actions (CLI).
-- Pemulihan akun terblokir (proses manual + audit).
-- Review keamanan berkala (CSP, dependensi, rotasi kunci).
-
-Lihat `docs/` pada jawaban ChatGPT untuk tautan referensi resmi.
+## Lanjutkan
+- Ingin login **username** (bukan email)? Tambah tabel `profiles` & RLS/Edge Function.
+- Tambahkan **PGAudit** untuk audit logging dan atur **PITR** untuk backup berkala.
