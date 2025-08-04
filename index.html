@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login • Admin</title>
+
+  <!-- CSP via meta (GitHub Pages tidak bisa set header) -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; base-uri 'none'; frame-ancestors 'none';
+                 connect-src 'self' https://*.supabase.co;
+                 img-src 'self' data:; font-src 'self' data:;
+                 style-src 'self' 'unsafe-inline';
+                 script-src 'self' https://esm.sh;
+                 upgrade-insecure-requests">
+
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body class="no-select">
+  <main class="container">
+    <section class="card">
+      <h1 class="title">Masuk</h1>
+      <p class="subtitle">Gunakan akun yang terdaftar di Supabase</p>
+
+      <form id="login-form" autocomplete="off" novalidate>
+        <label class="field">
+          <span>Username (email)</span>
+          <input id="username" name="username" type="email" required placeholder="nama@domain.com" inputmode="email" />
+          <small class="hint">Saat ini kolom <em>username</em> dipetakan ke email.</small>
+        </label>
+
+        <label class="field">
+          <span>Kata sandi</span>
+          <div class="password-wrap">
+            <input id="password" name="password" type="password" required minlength="8" />
+            <button type="button" id="toggle-pass" aria-label="Tampilkan/Sembunyikan Password">👁</button>
+          </div>
+        </label>
+
+        <button id="btn-login" class="btn" type="submit">Login</button>
+        <div id="login-state" class="state" role="status" aria-live="polite"></div>
+      </form>
+    </section>
+
+    <footer class="foot">
+      <small>© <span id="y"></span> — Demo Admin Panel (GitHub Pages + Supabase)</small>
+    </footer>
+  </main>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel • Whitelist</title>
+
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; base-uri 'none'; frame-ancestors 'none';
+                 connect-src 'self' https://*.supabase.co;
+                 img-src 'self' data:; font-src 'self' data:;
+                 style-src 'self' 'unsafe-inline';
+                 script-src 'self' https://esm.sh;
+                 upgrade-insecure-requests">
+
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body class="no-select">
+  <header class="topbar">
+    <h1>Admin Panel</h1>
+    <div class="spacer"></div>
+    <button id="btn-logout" class="btn-outline">Keluar</button>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <header class="card-head">
+        <h2>Whitelist</h2>
+        <button id="btn-open-modal" class="btn">Buat Whitelist</button>
+      </header>
+
+      <div id="table-wrap" class="table-wrap">
+        <table class="table" id="whitelist-table" aria-describedby="table-desc">
+          <caption id="table-desc" class="visually-hidden">Tabel data whitelist</caption>
+          <thead>
+            <tr>
+              <th>UserID</th>
+              <th>Angka</th>
+              <th>1/0</th>
+              <th>Nama</th>
+              <th>Dibuat</th>
+            </tr>
+          </thead>
+          <tbody id="whitelist-body">
+            <tr><td colspan="5" class="muted center">Memuat data…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal -->
+  <dialog id="modal" class="modal">
+    <form id="form-create" method="dialog">
+      <h3>Buat Whitelist</h3>
+      <label class="field">
+        <span>UserID (kolom A)</span>
+        <input id="f-userid" name="userid" type="text" required />
+      </label>
+      <label class="field">
+        <span>Angka (kolom B)</span>
+        <input id="f-angka" name="angka" type="number" required inputmode="numeric" />
+      </label>
+      <label class="field">
+        <span>Boolean 1/0 (kolom C)</span>
+        <select id="f-flag" name="flag" required>
+          <option value="1">1</option>
+          <option value="0">0</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>Nama (kolom D)</span>
+        <input id="f-nama" name="nama" type="text" required />
+      </label>
+
+      <div class="modal-actions">
+        <button value="cancel" class="btn-outline" type="button" id="btn-cancel">Batal</button>
+        <button value="default" class="btn" type="submit">Simpan</button>
+      </div>
+      <div id="create-state" class="state" role="status" aria-live="polite"></div>
+    </form>
+  </dialog>
+
+  <script type="module" src="js/admin.js"></script>
+</body>
+</html>
