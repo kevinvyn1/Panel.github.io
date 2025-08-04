@@ -1,5 +1,5 @@
 export const SUPABASE_URL = "https://lnmlsrvdjnhnfrcmnqgr.supabase.co";
-export const SUPABASE_ANON_KEY = "ey...YOUR-ANON-KEY...";
+export const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxubWxzcnZkam5obmZyY21ucWdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyNzQ4MzMsImV4cCI6MjA2OTg1MDgzM30.6SenlB4sNkzbrvmI_diD6-oxVPXE6sZyESbfoT3l1sQ";
 export const SESSION_INACTIVITY_MINUTES = 15;
 export const REQUIRE_ADMIN = true;
 
