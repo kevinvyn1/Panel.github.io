@@ -1,4 +1,4 @@
-/* ===== Global theme ===== */
+/* ===== Global theme & anti-dupe background ===== */
 :root{
   --bg:#0a0004;
   --card:#1b0202;
@@ -10,53 +10,33 @@
 
 *{ box-sizing:border-box; margin:0; padding:0; }
 html,body{ height:100%; }
-html{ color-scheme: dark; scroll-behavior:smooth; }
+html{ color-scheme: dark; }
 
 body{
   color:var(--text);
   font:400 16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-  background:none;
+  background:none; /* gradien dipindah ke pseudo-element agar tidak ngeduplicate */
 }
 
-/* ===== Hero gradient (red–black) ===== */
+/* Satu layer gradien tetap menempel viewport (tidak tile saat scroll) */
 body::before{
   content:"";
   position:fixed;
   inset:0;
-  z-index:-2;
+  z-index:-1;
   pointer-events:none;
   background:
     radial-gradient(1200px 800px at 0% 0%, rgba(255,39,39,.35), transparent 70%),
-    radial-gradient(1000px 800px at 100% 100%, rgba(255,39,39,.25), transparent 70%),
-    linear-gradient(135deg, #7c0f16 0%, #0a0004 45%, #000 100%);
+    linear-gradient(140deg, #ff2727 0%, #0a0004 45%, #000 100%);
   background-repeat:no-repeat;
   background-size:100% 100%;
 }
 
-/* Subtle animated glow layer */
-@keyframes swirlBg{
-  from{ transform:rotate(0deg); }
-  to{ transform:rotate(360deg); }
-}
-body::after{
-  content:"";
-  position:fixed;
-  top:50%; left:50%;
-  width:160vmax; height:160vmax;
-  transform:translate(-50%,-50%);
-  background:conic-gradient(from 0deg, rgba(255,39,39,.15) 0deg, transparent 90deg);
-  filter:blur(120px);
-  animation:swirlBg 60s linear infinite;
-  z-index:-3;
-}
-
-/* ===== Utilities ===== */
 .no-select{ user-select:none; -webkit-user-select:none; -ms-user-select:none; }
 
-/* Generic container */
 .container{ width:min(92vw,var(--max)); margin:6vh auto; }
 
-/* ===== Cards ===== */
+/* ===== Cards & table ===== */
 .card{
   background: color-mix(in srgb, var(--card) 88%, black);
   border:1px solid #2b0b0b;
@@ -65,9 +45,10 @@ body::after{
   box-shadow:0 8px 30px rgba(0,0,0,.45);
 }
 
+.card-head{ display:flex; justify-content:space-between; align-items:center; gap:.75rem; }
 h1,h2,h3{ font-weight:700; }
+h2{ font-size:clamp(1.2rem,2.4vw,1.6rem); }
 
-/* Inputs & buttons */
 input, select{
   background:#0e0e0f;
   color:var(--text);
@@ -77,20 +58,12 @@ input, select{
   width:100%;
   font-size:1rem;
 }
-input:focus{ outline:none; border-color:var(--accent); }
-
 .field{ display:flex; flex-direction:column; gap:.4rem; margin:.85rem 0; }
+.field-label{ font-weight:700; color:#ffe1e1; letter-spacing:.2px; } /* label tebal */
 
 .password-wrap{ display:flex; align-items:stretch; gap:.5rem; }
 .password-wrap input{ flex:1; }
-.password-wrap button{
-  background:#1a1a1b;
-  border:1px solid #333;
-  color:#ddd;
-  padding:.6rem .8rem;
-  border-radius:10px;
-  cursor:pointer;
-}
+.password-wrap button{ background:#1a1a1b; border:1px solid #333; color:#ddd; padding:.6rem .8rem; border-radius:10px; cursor:pointer; }
 
 .btn, .btn-outline{
   padding:.85rem 1rem;
@@ -99,121 +72,95 @@ input:focus{ outline:none; border-color:var(--accent); }
   font-weight:700;
   min-width:120px;
 }
-.btn{
-  background:linear-gradient(90deg, #ff2727 0%, #7c0f16 100%);
-  color:#fff;
-  border:none;
-  box-shadow:0 0 20px rgba(255,39,39,.35);
-  transition:filter .2s;
-}
-.btn:hover{ filter:brightness(1.1); }
+.btn{ background:var(--accent); color:black; border:none; }
 .btn:disabled{ opacity:.7; cursor:progress; }
 .btn-outline{ background:transparent; color:var(--text); border:1px solid #555; }
 
-/* Light status text */
 .state{ margin-top:.75rem; min-height:1.2rem; color:#ffd4d4; }
-
-/* ===== Login-specific overrides ===== */
-body.login{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  min-height:100vh;
-}
-body.login .container{ width:min(92vw, 420px); margin:0 auto; }
-body.login .card{
-  background: rgba(0,0,0,.55);
-  border:1px solid rgba(255,39,39,.45);
-  backdrop-filter: blur(12px);
-}
-
-/* ===== Footer ===== */
-.foot{ margin-top:2rem; text-align:center; color:var(--muted); font-size:.9rem; }
-/* ===== Admin layout with sidebar ===== */
-body.admin{
-  display:flex;
-  min-height:100vh;
-}
-
-.sidebar{
-  width:240px;
-  background:color-mix(in srgb, var(--card) 92%, black);
-  border-right:1px solid #2b0b0b;
-  display:flex;
-  flex-direction:column;
-}
-
-.sidebar .logo{
-  font-weight:800;
-  font-size:1.2rem;
-  padding:1.2rem 1.4rem;
-  text-transform:uppercase;
-  letter-spacing:.05em;
-}
-
-.sidebar nav ul{
-  list-style:none;
-  margin:0;
-  padding:.5rem 0;
-}
-.sidebar nav a{
-  display:block;
-  padding:.65rem 1.4rem;
-  color:var(--text);
-  text-decoration:none;
-  font-size:.95rem;
-  transition:background .15s,color .15s;
-}
-.sidebar nav a:hover,
-.sidebar nav a.active{
-  background:rgba(255,39,39,.14);
-  color:var(--accent);
-}
-
-.panel{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  min-height:100vh;
-}
+.muted{ color:var(--muted); }
+.center{ text-align:center; }
 
 .topbar{
-  display:flex;
-  align-items:center;
-  padding:1rem 1.8rem;
-  gap:1rem;
-  border-bottom:1px solid #2b0b0b;
-  background:rgba(0,0,0,.35);
+  position:sticky; top:0; display:flex; align-items:center; gap:1rem;
+  padding:1rem; background:rgba(0,0,0,.45);
+  backdrop-filter: blur(8px); border-bottom:1px solid #3a0d0d;
 }
+.spacer{ flex:1; }
 
-.admin main.container{
-  flex:1;
-  width:min(100%, var(--max));
-  margin:0 auto;
-  padding:2rem 2rem 4rem;
-}
-/* ===== Modal tweaks: center, smooth radius, no white border ===== */
+.table-wrap{ overflow:auto; border-radius:12px; border:1px solid #361010; margin-top:1rem; }
+.table{ width:100%; border-collapse: collapse; }
+.table th, .table td{ padding:.8rem; border-bottom:1px solid #2b0b0b; }
+.table th{ text-align:left; color:#ffdede; font-weight:700; }
+
+/* ===== Modal: center + merah transparan ===== */
 .modal{
   border:none;
   padding:0;
-  border-radius:18px;
-  background:transparent;
+  width:min(92vw, 520px);
+  background:transparent;   /* transparan; form di dalamnya yang punya background */
 }
+
+/* True centering (cross-browser) */
 .modal[open]{
+  inset:50% auto auto 50%;
+  transform:translate(-50%, -50%);
   position:fixed;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  margin:0;
 }
 
-dialog::backdrop{
-  background:rgba(0,0,0,.55);
+/* Backdrop sedikit gelap agar fokus ke modal */
+.modal::backdrop{
+  background: linear-gradient(0deg, rgba(0,0,0,.55), rgba(0,0,0,.55));
 }
 
-.modal form{
+/* Konten modal: merah transparan, tidak terlalu pekat */
+#form-create{
+  display:block;
+  background: rgba(255, 39, 39, .10);             /* merah transparan */
+  border: 1px solid rgba(255, 39, 39, .28);       /* garis merah lembut */
+  border-radius: 16px;
+  padding: 1rem 1.2rem 1.2rem;
+  box-shadow: 0 12px 40px rgba(0,0,0,.55);
+}
+
+.modal-title{
+  font-size: clamp(1.1rem, 2vw, 1.3rem);
+  margin-bottom:.25rem;
+}
+
+/* Tombol di footer modal */
+.modal-actions{
+  display:flex; gap:.75rem; justify-content:flex-end; margin-top:.5rem;
+}
+
+@media (max-width: 640px){
+  .container{ margin: 3vh auto; }
+  .topbar h1{ font-size:1.2rem; }
+}
+
+/* ===== Utilities ===== */
+.visually-hidden{
+  position:absolute; width:1px; height:1px; margin:-1px; border:0; padding:0; clip:rect(0 0 0 0); overflow:hidden;
+}
+/* ===== Sidebar fixed to viewport ===== */
+.sidebar{
+  position:fixed;
+  top:0;
+  left:0;
+  height:100vh;
+  width:240px;
+  overflow-y:auto;
+  z-index:100;
   background:color-mix(in srgb, var(--card) 92%, black);
-  border:1px solid #2b0b0b;
-  border-radius:inherit;
-  padding:clamp(1rem,2vw,1.5rem);
+  border-right:1px solid #2b0b0b;
+}
+
+.panel{
+  margin-left:240px;
+  display:flex;
+  flex-direction:column;
+  min-height:100vh;
+}
+
+body.admin{
+  min-height:100vh;
 }
