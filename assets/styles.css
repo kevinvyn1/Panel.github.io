@@ -73,3 +73,78 @@ body::before{
 input,select{background:#0e0e0f;color:var(--text);border:1px solid #3a3a3a;border-radius:10px;padding:.7rem 1rem;font-size:1rem;width:100%;}
 input:focus,select:focus{outline:none;border-color:var(--red);}
 .state{margin-top:.75rem;min-height:1.2rem;color:#ffd4d4;}
+/* ====== FIX: Modal "Buat Whitelist" biar cakep lagi ====== */
+
+/* backdrop gelap */
+#modal::backdrop{
+  background: rgba(0,0,0,.65);
+}
+
+/* center di layar */
+#modal[open]{
+  position: fixed;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%,-50%);
+}
+
+/* panel merah gelap transparan + border merah lembut */
+#modal form{
+  width: min(92vw, 520px);
+  background: rgba(20, 0, 0, .78);                 /* <- bukan abu-abu */
+  border: 1px solid rgba(255, 39, 39, .28);
+  border-radius: 16px;
+  padding: 1rem 1.2rem 1.2rem;
+  color: #fff;                                      /* semua teks putih */
+  box-shadow:
+    0 18px 60px rgba(0,0,0,.55),
+    0 0 0 1px rgba(255,39,39,.06) inset;
+}
+
+/* judul */
+#modal .modal-title{
+  color:#fff;
+  text-align:center;
+  margin: 0 0 .75rem;
+  font-weight: 800;
+  letter-spacing:.2px;
+}
+
+/* label & field */
+#modal .field span{ color:#fff; font-weight:600; }
+#modal input, #modal select{
+  background:#0f0f10;
+  color:#fff;
+  border:1px solid #2f2f32;
+  border-radius:10px;
+  padding:.85rem 1rem;
+}
+#modal input:focus, #modal select:focus{
+  outline:none;
+  border-color:#ff2727;
+  box-shadow:0 0 0 3px rgba(255,39,39,.18);
+}
+#modal input::placeholder{ color:#cfcfcf; }
+
+/* tombol di bawah modal */
+#modal .modal-actions{
+  display:flex;
+  justify-content:center;   /* tombol di tengah */
+  gap:.75rem;
+  margin-top:.9rem;
+}
+#modal .btn{                 /* tombol merah */
+  background: linear-gradient(90deg, #ff2727, #7c0f16);
+  color:#fff; border:none; border-radius:12px;
+  padding:.85rem 1.2rem; font-weight:800;
+  box-shadow:0 10px 28px rgba(255,39,39,.28);
+}
+#modal .btn:hover{ filter:brightness(1.05); }
+#modal .btn-outline{         /* tombol batal */
+  background: transparent;
+  color:#fff;
+  border:1px solid #7a7a7a;
+  border-radius:12px;
+  padding:.85rem 1.2rem; font-weight:700;
+}
+#modal .btn-outline:hover{ border-color:#fff; }
+
