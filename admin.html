@@ -27,6 +27,7 @@
         <li><a href="#" data-page="home" class="active">Home</a></li>
         <li><a href="#" data-page="v1">Whitelist V1</a></li>
         <li><a href="#" data-page="v2">Whitelist V2</a></li>
+        <li><a href="#" data-page="logs">Log Admins</a></li>
       </ul>
     </nav>
   </aside>
@@ -45,6 +46,18 @@
         <h2>Selamat datang di Admin Panel</h2>
         <p>Pilih menu di kiri untuk mengelola whitelist.</p>
       </section>
+      <section class="card" id="logs-page" hidden>
+        <header class="card-head">
+          <h2 style="flex:1">Logs</h2>
+          <button id="btn-reload-logs" class="btn-outline">Muat Ulang</button>
+        </header>
+        <div class="table-wrap">
+          <table class="table">
+            <thead><tr><th>Waktu</th><th>Actor</th><th>Aksi</th><th>Sheet</th><th>UserID</th><th>Nama</th><th>Row</th></tr></thead>
+            <tbody id="body-logs"><tr><td colspan="7" class="center muted">Memuat…</td></tr></tbody>
+          </table>
+        </div>
+          </section>
 
       <!-- Whitelist V1 -->
       <section class="card" id="v1-page" hidden>
