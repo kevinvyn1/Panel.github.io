@@ -164,6 +164,19 @@ input, select{
 body.admin{
   min-height:100vh;
 }
+/* ===== Table wrap: buat scroll ke bawah ===== */
+.table-wrap{
+  max-height: 55vh;        /* ubah sesuai selera */
+  overflow-y: auto;        /* hanya scroll vertikal */
+  overflow-x: hidden;      /* cegah scroll horizontal */
+}
+
+/* opsi: lebar tiap kolom agar tidak meluber & tetap responsif */
+.table td,
+.table th{
+  white-space: nowrap;      /* jangan bungkus teks */
+}
+
 /* ===== Sidebar layout ===== */
 .sidebar{
   position:fixed;
