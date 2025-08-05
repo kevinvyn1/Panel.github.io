@@ -9,7 +9,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ---------- Elemen ---------- */
 const links  = document.querySelectorAll('.sidebar nav a');
-const pages  = {home:'#home-page', v1:'#v1-page', v2:'#v2-page'};
+const pages  = {home:'#home-page', v1:'#v1-page', v2:'#v2-page', logs:'#logs-page'};
 const title  = document.getElementById('page-title');
 
 /* ---------- NAV ---------- */
@@ -23,8 +23,10 @@ function switchPage(p){
   }
   links.forEach(a => a.classList.toggle('active', a.dataset.page === p));
   title.textContent = p === 'home' ? 'Home' : (p === 'v1' ? 'Whitelist V1' : 'Whitelist V2');
-  if (p === 'v1') loadV1();
-  if (p === 'v2') loadV2();
+if (p === 'v1') loadV1();
+if (p === 'v2') loadV2();
+if (p === 'logs') loadLogs();   // <— tambahin
+
 }
 
 /* ---------- FETCH HELPERS ---------- */
@@ -151,6 +153,40 @@ async function loadV2(){
   }catch(err){
     console.error(err);
     if (tbody2) tbody2.innerHTML = `<tr><td colspan="5" class="center muted">Gagal memuat</td></tr>`;
+  }
+}
+/* ---------- Logs ---------- */
+const tbodyLogs = document.getElementById('body-logs');
+const btnReloadLogs = document.getElementById('btn-reload-logs');
+if (btnReloadLogs) btnReloadLogs.onclick = loadLogs;
+
+async function loadLogs(){
+  if (!tbodyLogs) return;
+  tbodyLogs.innerHTML = rowLoading(7);
+  try{
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/wl_logs?select=*&order=created_at.desc`, {
+      headers:{ apikey:SUPABASE_ANON_KEY, authorization:`Bearer ${SUPABASE_ANON_KEY}` }
+    });
+    if(!res.ok) throw new Error(res.statusText);
+    const data = await res.json();
+    if (!data.length){
+      tbodyLogs.innerHTML = `<tr><td colspan="7" class="center muted">Kosong</td></tr>`;
+      return;
+    }
+    tbodyLogs.innerHTML = data.map(l => `
+      <tr>
+        <td>${new Date(l.created_at).toLocaleString()}</td>
+        <td>${esc(l.actor || '')}</td>
+        <td>${esc(l.action || '')}</td>
+        <td>${esc(l.sheet  || '')}</td>
+        <td>${esc(l.user_id|| '')}</td>
+        <td>${esc(l.nama   || '')}</td>
+        <td>${esc(l.rownum || '')}</td>
+      </tr>
+    `).join('');
+  }catch(err){
+    console.error(err);
+    tbodyLogs.innerHTML = `<tr><td colspan="7" class="center muted">Gagal memuat</td></tr>`;
   }
 }
 
