@@ -11,8 +11,8 @@ export const CAPTCHA_SITE_KEY = "d87070f2-8a06-40aa-90d8-e186f224c03a";
 export const DATA_PROVIDER = 'sheet';
 
 // Jika 'sheet'
-export const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxsW3mF8uaALNlQS3ZiT5KZ_8BVSSTXDoB786QxuiMgX-2t2scEW0IpYJRxo2T9HdhV/exec";
+export const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbx2sUbJztwaPEDRim4vwiqjWhF30_e1MLDD8YHq9b_pnhgYrW5GKzaJai4WGmH0Xbu7/exec ";
 export const SHEET_TOKEN   = "2099812378781239012221";
 // Endpoints Spreadsheet khusus
-export const SHEET_API_URL_V1 = "https://script.google.com/macros/s/AKfycbxsW3mF8uaALNlQS3ZiT5KZ_8BVSSTXDoB786QxuiMgX-2t2scEW0IpYJRxo2T9HdhV/exec";
-export const SHEET_API_URL_V2 = "https://script.google.com/macros/s/AKfycbzOd7VxZJjnnwx76u3WQiB8dmeISqt-0sAgK3-xWoJz03E5G3znnx6lTOUHG5FtzCre/exec";
+export const SHEET_API_URL_V1 = "https://script.google.com/macros/s/AKfycbx2sUbJztwaPEDRim4vwiqjWhF30_e1MLDD8YHq9b_pnhgYrW5GKzaJai4WGmH0Xbu7/exec";
+export const SHEET_API_URL_V2 = "https://script.google.com/macros/s/AKfycbyfUX76qodWgHVb5QF8EGLOHsw3JIYBxQoBvC4IKv3ROZKfH5oLcB-3plD4u9mOBlCw/exec";
