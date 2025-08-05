@@ -226,4 +226,37 @@ async function doDelete({sheet,row,userid,nama}){
 function confirmDelete({sheet,row,userid,nama}){
   confirmText.innerHTML = `Apakah anda yakin ingin menghapus baris <b>${row}</b> dengan nama <b>${esc(nama)}</b> dengan userid <b>${esc(userid)}</b>?`;
   confirmDlg.showModal();
-  const hand
+  const handler = async ()=>{ confirmDlg.close(); btnYes.removeEventListener('click', handler); await doDelete({sheet,row,userid,nama}); };
+  btnYes.addEventListener('click', handler);
+}
+
+/* ---------- Logs ---------- */
+const tbodyLogs = document.getElementById('body-logs');
+const btnReloadLogs = document.getElementById('btn-reload-logs');
+if (btnReloadLogs) btnReloadLogs.onclick = loadLogs;
+
+async function loadLogs(){
+  if (!tbodyLogs) return;
+  tbodyLogs.innerHTML = rowLoading(7);
+  try{
+    const data = await fetchSupabase('wl_logs?select=*&order=created_at.desc');
+    if (!data.length){ tbodyLogs.innerHTML = `<tr><td colspan="7" class="center muted">Kosong</td></tr>`; return; }
+    tbodyLogs.innerHTML = data.map(l => `
+      <tr>
+        <td>${new Date(l.created_at).toLocaleString()}</td>
+        <td>${esc(l.actor || '')}</td>
+        <td>${esc(l.action || '')}</td>
+        <td>${esc(l.sheet  || '')}</td>
+        <td>${esc(l.user_id|| '')}</td>
+        <td>${esc(l.nama   || '')}</td>
+        <td>${esc(l.rownum || '')}</td>
+      </tr>
+    `).join('');
+  }catch(err){
+    console.error(err);
+    tbodyLogs.innerHTML = `<tr><td colspan="7" class="center muted">Gagal memuat</td></tr>`;
+  }
+}
+
+/* ---------- Helpers ---------- */
+const rowLoading = (colspan) => `<tr><td colspan="${colspan}" class="center muted">Memuat…</td></tr>`;
