@@ -13,92 +13,144 @@ const links  = document.querySelectorAll('.sidebar nav a');
 const pages  = {home:'#home-page', v1:'#v1-page', v2:'#v2-page'};
 const title  = document.getElementById('page-title');
 
-links.forEach(a=>a.onclick = e => {e.preventDefault(); switchPage(a.dataset.page);});
+links.forEach(a => a.onclick = (e) => { e.preventDefault(); switchPage(a.dataset.page); });
 switchPage('home');
 
 /* ---------- NAV ---------- */
 function switchPage(p){
-  for(const [k,sel] of Object.entries(pages)) document.querySelector(sel).hidden = k!==p;
-  links.forEach(a=>a.classList.toggle('active', a.dataset.page===p));
-  title.textContent = p==='home' ? 'Home' : p==='v1' ? 'Whitelist V1' : 'Whitelist V2';
-  if(p==='v1') loadV1(); if(p==='v2') loadV2();
+  for (const [k, sel] of Object.entries(pages)) document.querySelector(sel).hidden = (k !== p);
+  links.forEach(a => a.classList.toggle('active', a.dataset.page === p));
+  title.textContent = p === 'home' ? 'Home' : (p === 'v1' ? 'Whitelist V1' : 'Whitelist V2');
+  if (p === 'v1') loadV1();
+  if (p === 'v2') loadV2();
 }
 
 /* ---------- FETCH HELPERS ---------- */
-const qsToken = v=>`${v}${v.includes('?')?'&':'?'}token=${encodeURIComponent(SHEET_TOKEN)}`;
-const fetchSheet = url => fetch(qsToken(url)).then(r=>r.json());
-
-const fetchSupabase = tbl =>
-  fetch(`${SUPABASE_URL}/rest/v1/${tbl}?select=*`,{
-    headers:{ apikey:SUPABASE_ANON_KEY, authorization:`Bearer ${SUPABASE_ANON_KEY}` }
-  }).then(r=>r.json());
+const qsToken   = v => `${v}${v.includes('?') ? '&' : '?'}token=${encodeURIComponent(SHEET_TOKEN)}`;
+const fetchSheet = (url) => fetch(qsToken(url)).then(r => {
+  if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+  return r.json();
+});
+const fetchSupabase = (tbl) =>
+  fetch(`${SUPABASE_URL}/rest/v1/${tbl}?select=*`, {
+    headers: { apikey: SUPABASE_ANON_KEY, authorization: `Bearer ${SUPABASE_ANON_KEY}` }
+  }).then(r => {
+    if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+    return r.json();
+  });
 
 /* ---------- V1 ---------- */
 const tbody1 = document.querySelector('#body-v1');
 document.querySelector('#btn-reload-v1').onclick = loadV1;
-document.querySelector('#btn-open-v1' ).onclick = ()=>openModal('v1');
+document.querySelector('#btn-open-v1' ).onclick = () => openModal('v1');
 
 async function loadV1(){
   tbody1.innerHTML = rowLoading(5);
-  const data = DATA_PROVIDER==='sheet' ? await fetchSheet(SHEET_API_URL_V1)
-                                       : await fetchSupabase('whitelist_v1');
-  render(tbody1, data, r=>`
-    <td>${r.user_id||r.userid}</td><td>${r.angka}</td><td>${r.flag?1:0}</td><td>${r.nama||r.name}</td><td>${r.created_at||''}</td>`);
+  try{
+    const raw = DATA_PROVIDER === 'sheet' ? await fetchSheet(SHEET_API_URL_V1)
+                                          : await fetchSupabase('whitelist_v1');
+    const data = Array.isArray(raw) ? raw : [];
+    renderRows(tbody1, data, rowTplV1);
+  }catch(err){
+    console.error(err);
+    tbody1.innerHTML = `<tr><td colspan="5" class="center muted">Gagal memuat</td></tr>`;
+  }
 }
 
 /* ---------- V2 ---------- */
 const tbody2 = document.querySelector('#body-v2');
 document.querySelector('#btn-reload-v2').onclick = loadV2;
-document.querySelector('#btn-open-v2' ).onclick = ()=>openModal('v2');
+document.querySelector('#btn-open-v2' ).onclick = () => openModal('v2');
 
 async function loadV2(){
   tbody2.innerHTML = rowLoading(5);
-  const data = DATA_PROVIDER==='sheet' ? await fetchSheet(SHEET_API_URL_V2)
-                                       : await fetchSupabase('whitelist_v2');
-  render(tbody2, data, r=>`
-    <td>${r.user_id||r.userid}</td><td>${r.angka}</td><td>${r.flag?1:0}</td><td>${r.kode}</td><td>${r.nama||r.name}</td>`);
+  try{
+    const raw = DATA_PROVIDER === 'sheet' ? await fetchSheet(SHEET_API_URL_V2)
+                                          : await fetchSupabase('whitelist_v2');
+    const data = Array.isArray(raw) ? raw : [];
+    renderRows(tbody2, data, rowTplV2);
+  }catch(err){
+    console.error(err);
+    tbody2.innerHTML = `<tr><td colspan="5" class="center muted">Gagal memuat</td></tr>`;
+  }
 }
 
+/* ---------- Template baris ---------- */
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const to10 = (v) => (String(v) === '1' || String(v).toLowerCase() === 'true') ? 1 : 0;
+
+const rowTplV1 = (r) => `
+  <tr>
+    <td>${esc(r.user_id ?? r.userid)}</td>
+    <td>${esc(r.angka)}</td>
+    <td>${to10(r.flag)}</td>
+    <td>${esc(r.nama ?? r.name)}</td>
+    <td>${esc(r.created_at ?? r.created ?? '')}</td>
+  </tr>`;
+
+const rowTplV2 = (r) => `
+  <tr>
+    <td>${esc(r.user_id ?? r.userid)}</td>
+    <td>${esc(r.angka)}</td>
+    <td>${to10(r.flag)}</td>
+    <td>${esc(r.kode ?? '')}</td>
+    <td>${esc(r.nama ?? r.name)}</td>
+  </tr>`;
+
 /* ---------- Modal create (both sheets) ---------- */
-const modal = document.getElementById('modal');
-const labelExtra = document.getElementById('label-extra');
-const fieldExtra = document.getElementById('f-extra');
-let targetSheet = 'v1';       // default
+const modal       = document.getElementById('modal');
+const labelExtra  = document.getElementById('label-extra');
+const fieldExtra  = document.getElementById('f-extra');     // Nama (V1) / Kode (V2)
+const wrapNamaV2  = document.getElementById('wrap-v2-nama'); // bisa null kalau HTML nggak ada
+const fieldNamaV2 = document.getElementById('f-nama-v2');    // bisa null juga
+let targetSheet = 'v1';
 
 function openModal(sheet){
   targetSheet = sheet;
-  labelExtra.textContent = sheet==='v1' ? 'Nama (D)' : 'Kode (D)';
+  if (sheet === 'v1'){
+    labelExtra.textContent = 'Nama (D)';
+    if (wrapNamaV2) wrapNamaV2.style.display = 'none';
+  } else {
+    labelExtra.textContent = 'Kode (D)';
+    if (wrapNamaV2) wrapNamaV2.style.display = '';
+  }
   fieldExtra.value = '';
+  if (fieldNamaV2) fieldNamaV2.value = '';
   modal.showModal();
 }
-document.getElementById('btn-cancel').onclick = ()=>modal.close();
 
-document.getElementById('form-create').onsubmit = async e=>{
+document.getElementById('btn-cancel').onclick = () => modal.close();
+
+document.getElementById('form-create').onsubmit = async (e) => {
   e.preventDefault();
   const payload = {
     user_id: document.getElementById('f-userid').value.trim(),
     angka  : document.getElementById('f-angka').value.trim(),
-    flag   : document.getElementById('f-flag').value==='1',
+    flag   : document.getElementById('f-flag').value === '1',
   };
-  if(targetSheet==='v1') payload.nama = fieldExtra.value.trim();
-  else { payload.kode = fieldExtra.value.trim(); payload.nama = document.getElementById('f-nama').value.trim(); }
+  if (targetSheet === 'v1'){
+    payload.nama = fieldExtra.value.trim();
+  } else {
+    payload.kode = fieldExtra.value.trim();
+    payload.nama = fieldNamaV2 ? fieldNamaV2.value.trim() : '';
+  }
 
   const state = document.getElementById('create-state');
   state.textContent = 'Menyimpan…';
 
   try{
-    if(DATA_PROVIDER==='sheet'){
-      const body = new URLSearchParams({ token:SHEET_TOKEN, ...payload, flag:payload.flag?'1':'0' });
-      const url  = targetSheet==='v1'? SHEET_API_URL_V1 : SHEET_API_URL_V2;
+    if (DATA_PROVIDER === 'sheet'){
+      const body = new URLSearchParams({ token:SHEET_TOKEN, ...payload, flag: payload.flag ? '1' : '0' });
+      const url  = targetSheet === 'v1' ? SHEET_API_URL_V1 : SHEET_API_URL_V2;
       await fetch(url, { method:'POST', mode:'no-cors',
-        headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'}, body });
-    }else{
-      const table = targetSheet==='v1' ? 'whitelist_v1' : 'whitelist_v2';
+        headers:{ 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' }, body });
+    } else {
+      const table = targetSheet === 'v1' ? 'whitelist_v1' : 'whitelist_v2';
       await fetchSupabaseInsert(table, payload);
     }
     state.textContent = 'Berhasil.';
     modal.close();
-    targetSheet==='v1' ? loadV1() : loadV2();
+    targetSheet === 'v1' ? loadV1() : loadV2();
   }catch(err){
     console.error(err);
     state.textContent = 'Gagal menyimpan.';
@@ -114,13 +166,16 @@ function fetchSupabaseInsert(table, payload){
       'Content-Type':'application/json'
     },
     body: JSON.stringify(payload)
-  }).then(r=>{ if(!r.ok) throw new Error(r.statusText); });
+  }).then(r => { if(!r.ok) throw new Error(r.statusText); });
 }
 
 /* ---------- Utils ---------- */
-const rowLoading = colspan => `<tr><td colspan="${colspan}" class="center muted">Memuat…</td></tr>`;
-function render(tbody, arr, tpl){
-  if(!arr.length){ tbody.innerHTML = rowLoading(99).replace('Memuat…', 'Kosong'); return; }
-  tbody.innerHTML = arr.map(tpl).join('');
+const rowLoading = (colspan) => `<tr><td colspan="${colspan}" class="center muted">Memuat…</td></tr>`;
+function renderRows(tbody, rows, tpl){
+  if (!rows || !rows.length){
+    tbody.innerHTML = `<tr><td colspan="99" class="center muted">Kosong</td></tr>`;
+    return;
+  }
+  // pastikan setiap item -> satu <tr>
+  tbody.innerHTML = rows.map(tpl).join('');
 }
-
