@@ -1,228 +1,150 @@
-/* ===== Global theme & anti-dupe background ===== */
+/* ====================================================================
+   Tema Inferno Panel
+   ==================================================================== */
+
+/* ---------- Variabel global ---------- */
 :root{
-  --bg:#0a0004;
-  --card:#1b0202;
-  --accent:#ff2727;
+  --bg:   #0a0004;
+  --card: #1b0202;
+  --red:  #ff2727;
   --muted:#b6b6b6;
-  --text:#f5f5f5;
-  --max:1000px;
+  --text: #f5f5f5;
+  --max:  1100px;
 }
 
-*{ box-sizing:border-box; margin:0; padding:0; }
-html,body{ height:100%; }
-html{ color-scheme: dark; }
+/* ---------- Reset / default ---------- */
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;}
+html,body{height:100%;}
+body{background:none;color:var(--text);}
 
-body{
-  color:var(--text);
-  font:400 16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-  background:none; /* gradien dipindah ke pseudo-element agar tidak ngeduplicate */
-}
-
-/* Satu layer gradien tetap menempel viewport (tidak tile saat scroll) */
 body::before{
   content:"";
-  position:fixed;
-  inset:0;
-  z-index:-1;
-  pointer-events:none;
+  position:fixed;inset:0;z-index:-2;
   background:
-    radial-gradient(1200px 800px at 0% 0%, rgba(255,39,39,.35), transparent 70%),
-    linear-gradient(140deg, #ff2727 0%, #0a0004 45%, #000 100%);
-  background-repeat:no-repeat;
-  background-size:100% 100%;
+    radial-gradient(1400px 900px at 0% 0%, rgba(255,39,39,.35), transparent 70%),
+    radial-gradient(1200px 900px at 100% 100%, rgba(255,39,39,.25), transparent 70%),
+    linear-gradient(135deg,#7c0f16 0%,#000 100%);
 }
 
-.no-select{ user-select:none; -webkit-user-select:none; -ms-user-select:none; }
+/* ====================================================================
+   Layout: Sidebar + Panel
+   ==================================================================== */
+.sidebar{
+  position:fixed;top:0;left:0;height:100vh;width:240px;overflow-y:auto;z-index:100;
+  background:color-mix(in srgb,var(--card) 92%,black);
+  border-right:1px solid #2b0b0b;
+  display:flex;flex-direction:column;
+}
 
-.container{ width:min(92vw,var(--max)); margin:6vh auto; }
+.logo{font-weight:800;font-size:1.3rem;padding:1.2rem 1.4rem;}
 
-/* ===== Cards & table ===== */
+.sidebar nav ul{list-style:none;margin:0;padding:.5rem 0;}
+.sidebar nav a{
+  display:block;padding:.65rem 1.4rem;color:var(--text);text-decoration:none;font-size:.95rem;
+  transition:background .15s,color .15s;
+}
+.sidebar nav a:hover,
+.sidebar nav a.active{
+  background:rgba(255,39,39,.15);color:var(--red);
+}
+
+.panel{
+  margin-left:240px;
+  display:flex;flex-direction:column;
+  min-height:100vh;
+}
+
+/* ====================================================================
+   Topbar
+   ==================================================================== */
+.topbar{
+  display:flex;align-items:center;gap:1rem;
+  padding:1rem 1.8rem;border-bottom:1px solid #2b0b0b;
+  background:rgba(0,0,0,.35);
+}
+.topbar h1{font-size:1.6rem;}
+
+/* ====================================================================
+   Container & Card
+   ==================================================================== */
+.container{
+  width:min(92vw,var(--max));
+  margin:2rem auto;
+  flex:1;
+}
+
 .card{
-  background: color-mix(in srgb, var(--card) 88%, black);
+  background:rgba(0,0,0,.55);
   border:1px solid #2b0b0b;
   border-radius:16px;
-  padding:clamp(1rem,2vw,1.5rem);
+  padding:1.5rem;
   box-shadow:0 8px 30px rgba(0,0,0,.45);
 }
-
-.card-head{ display:flex; justify-content:space-between; align-items:center; gap:.75rem; }
-h1,h2,h3{ font-weight:700; }
-h2{ font-size:clamp(1.2rem,2.4vw,1.6rem); }
-
-input, select{
-  background:#0e0e0f;
-  color:var(--text);
-  border:1px solid #3a3a3a;
-  border-radius:10px;
-  padding:.8rem 1rem;
-  width:100%;
-  font-size:1rem;
-}
-.field{ display:flex; flex-direction:column; gap:.4rem; margin:.85rem 0; }
-.field-label{ font-weight:700; color:#ffe1e1; letter-spacing:.2px; } /* label tebal */
-
-.password-wrap{ display:flex; align-items:stretch; gap:.5rem; }
-.password-wrap input{ flex:1; }
-.password-wrap button{ background:#1a1a1b; border:1px solid #333; color:#ddd; padding:.6rem .8rem; border-radius:10px; cursor:pointer; }
-
-.btn, .btn-outline{
-  padding:.85rem 1rem;
-  border-radius:12px;
-  cursor:pointer;
-  font-weight:700;
-  min-width:120px;
-}
-.btn{ background:var(--accent); color:black; border:none; }
-.btn:disabled{ opacity:.7; cursor:progress; }
-.btn-outline{ background:transparent; color:var(--text); border:1px solid #555; }
-
-.state{ margin-top:.75rem; min-height:1.2rem; color:#ffd4d4; }
-.muted{ color:var(--muted); }
-.center{ text-align:center; }
-
-.topbar{
-  position:sticky; top:0; display:flex; align-items:center; gap:1rem;
-  padding:1rem; background:rgba(0,0,0,.45);
-  backdrop-filter: blur(8px); border-bottom:1px solid #3a0d0d;
-}
-.spacer{ flex:1; }
-
-.table-wrap{ overflow:auto; border-radius:12px; border:1px solid #361010; margin-top:1rem; }
-.table{ width:100%; border-collapse: collapse; }
-.table th, .table td{ padding:.8rem; border-bottom:1px solid #2b0b0b; }
-.table th{ text-align:left; color:#ffdede; font-weight:700; }
-
-/* ===== Modal: center + merah transparan ===== */
-.modal{
-  border:none;
-  padding:0;
-  width:min(92vw, 520px);
-  background:transparent;   /* transparan; form di dalamnya yang punya background */
+.card-head{
+  margin-bottom:1rem;
+  display:flex;align-items:center;gap:.8rem;
 }
 
-/* True centering (cross-browser) */
-.modal[open]{
-  inset:50% auto auto 50%;
-  transform:translate(-50%, -50%);
-  position:fixed;
+/* ====================================================================
+   Buttons
+   ==================================================================== */
+.btn,
+.btn-outline{
+  padding:.7rem 1rem;border-radius:10px;font-weight:700;cursor:pointer;
+}
+.btn{
+  background:linear-gradient(90deg,var(--red) 0%,#7c0f16 100%);
+  color:#fff;border:none;
+  box-shadow:0 0 20px rgba(255,39,39,.35);
+}
+.btn-outline{
+  background:transparent;border:1px solid #555;color:var(--text);
 }
 
-/* Backdrop sedikit gelap agar fokus ke modal */
-.modal::backdrop{
-  background: linear-gradient(0deg, rgba(0,0,0,.55), rgba(0,0,0,.55));
-}
-
-/* Konten modal: merah transparan, tidak terlalu pekat */
-#form-create{
-  display:block;
-  background: rgba(255, 39, 39, .10);             /* merah transparan */
-  border: 1px solid rgba(255, 39, 39, .28);       /* garis merah lembut */
-  border-radius: 16px;
-  padding: 1rem 1.2rem 1.2rem;
-  box-shadow: 0 12px 40px rgba(0,0,0,.55);
-}
-
-.modal-title{
-  font-size: clamp(1.1rem, 2vw, 1.3rem);
-  margin-bottom:.25rem;
-}
-
-/* Tombol di footer modal */
-.modal-actions{
-  display:flex; gap:.75rem; justify-content:flex-end; margin-top:.5rem;
-}
-
-@media (max-width: 640px){
-  .container{ margin: 3vh auto; }
-  .topbar h1{ font-size:1.2rem; }
-}
-
-/* ===== Utilities ===== */
-.visually-hidden{
-  position:absolute; width:1px; height:1px; margin:-1px; border:0; padding:0; clip:rect(0 0 0 0); overflow:hidden;
-}
-/* ===== Sidebar fixed to viewport ===== */
-.sidebar{
-  position:fixed;
-  top:0;
-  left:0;
-  height:100vh;
-  width:240px;
-  overflow-y:auto;
-  z-index:100;
-  background:color-mix(in srgb, var(--card) 92%, black);
-  border-right:1px solid #2b0b0b;
-}
-
-.panel{
-  margin-left:240px;
-  display:flex;
-  flex-direction:column;
-  min-height:100vh;
-}
-
-body.admin{
-  min-height:100vh;
-}
-/* ===== Scrollable table (thead fix, tbody scroll) ===== */
-.table{
-  width:100%;
-  border-collapse:collapse;
-}
-
-/* header lengket di atas */
+/* ====================================================================
+   Table (scrollable tbody)
+   ==================================================================== */
+.table{width:100%;border-collapse:collapse;}
 .table thead th{
-  position:sticky;
-  top:0;
-  background:#120506;     /* sesuaikan tema */
+  position:sticky;top:0;background:#120506;
+  padding:.6rem .8rem;border:1px solid #2b0b0b;text-align:left;
 }
+.table-wrap{border-radius:12px;border:1px solid #2b0b0b;overflow:hidden;}
 
-/* blok tbody jadi area scroll */
-.tbody-scroll{
-  display:block;          /* pisahkan dari thead */
-  max-height:55vh;        /* tinggi maksimum kartu */
-  overflow-y:auto;        /* scroll vertikal */
+.tbody-scroll{       /* dipakai via class di HTML */
+  display:block;
+  max-height:55vh;   /* ubah tinggi sesuai kebutuhan */
+  overflow-y:auto;
   overflow-x:hidden;
 }
-
-/* baris & sel di dalam tbody supaya lebarnya ikuti tabel */
-.tbody-scroll tr{ display:table; width:100%; table-layout:fixed; }
+.tbody-scroll tr{
+  display:table;width:100%;table-layout:fixed;
+}
 .tbody-scroll td{
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
+  padding:.6rem .8rem;border:1px solid #2b0b0b;text-align:left;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.tbody-scroll tr:nth-child(even){background:rgba(255,255,255,.03);}
+.center{text-align:center;}
+.muted{color:var(--muted);}
+
+/* ====================================================================
+   Modal
+   ==================================================================== */
+dialog{border:none;border-radius:18px;padding:0;background:transparent;}
+dialog::backdrop{background:rgba(0,0,0,.55);}
+.modal form{
+  background:color-mix(in srgb,var(--card) 92%,black);
+  border:1px solid #2b0b0b;border-radius:inherit;
+  padding:clamp(1rem,2vw,1.5rem);
 }
 
-/* zebra optional */
-.tbody-scroll tr:nth-child(even){ background:rgba(255,255,255,.03); }
-
-
-
-/* ===== Sidebar layout ===== */
-.sidebar{
-  position:fixed;
-  top:0;
-  left:0;
-  height:100vh;
-  width:240px;
-  overflow-y:auto;
-  background:color-mix(in srgb, var(--card) 92%, black);
-  border-right:1px solid #2b0b0b;
-  display:flex;
-  flex-direction:column;
-  z-index:100;
+.field{display:flex;flex-direction:column;gap:.4rem;margin:.85rem 0;}
+input,select{
+  background:#0e0e0f;color:var(--text);
+  border:1px solid #3a3a3a;border-radius:10px;
+  padding:.7rem 1rem;font-size:1rem;width:100%;
 }
-.sidebar .logo{font-weight:800;font-size:1.3rem;padding:1.2rem 1.4rem;}
-.sidebar nav ul{list-style:none;margin:0;padding:.5rem 0;}
-.sidebar nav a{display:block;padding:.65rem 1.4rem;color:var(--text);text-decoration:none;font-size:.95rem;transition:background .15s,color .15s;}
-.sidebar nav a:hover,
-.sidebar nav a.active{background:rgba(255,39,39,.15);color:var(--accent);}
+input:focus,select:focus{outline:none;border-color:var(--red);}
+.state{margin-top:.75rem;min-height:1.2rem;color:#ffd4d4;}
 
-.panel{
-  margin-left:240px;
-  display:flex;
-  flex-direction:column;
-  min-height:100vh;
-}
-
-.topbar{display:flex;align-items:center;padding:1rem 1.8rem;gap:1rem;border-bottom:1px solid #2b0b0b;background:rgba(0,0,0,.35);}
