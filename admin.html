@@ -156,6 +156,16 @@
       <div id="create-state" class="state" aria-live="polite"></div>
     </form>
   </dialog>
+<dialog id="confirm" class="modal">
+  <form method="dialog" class="card" style="background:rgba(0,0,0,.6)">
+    <h3 class="modal-title" style="color:#fff">PERINGATAN!</h3>
+    <p id="confirm-text" style="margin:.5rem 0 1rem"></p>
+    <div class="modal-actions" style="justify-content:center">
+      <button value="cancel" class="btn-success" id="btn-no" type="button">Tidak</button>
+      <button value="default" class="btn-danger" id="btn-yes"  type="button">Ya</button>
+    </div>
+  </form>
+</dialog>
 
   <script type="module" src="js/admin.js"></script>
 </body>
