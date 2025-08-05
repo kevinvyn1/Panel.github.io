@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Panel</title>
 
-  <!-- CSP (Apps Script + Supabase + ESM) -->
   <meta http-equiv="Content-Security-Policy"
         content="
           default-src 'self';
@@ -27,7 +26,7 @@
         <li><a href="#" data-page="home" class="active">Home</a></li>
         <li><a href="#" data-page="v1">Whitelist V1</a></li>
         <li><a href="#" data-page="v2">Whitelist V2</a></li>
-        <li><a href="#" data-page="logs">Log Admins</a></li>
+        <li><a href="#" data-page="logs">Logs</a></li>
       </ul>
     </nav>
   </aside>
@@ -46,18 +45,6 @@
         <h2>Selamat datang di Admin Panel</h2>
         <p>Pilih menu di kiri untuk mengelola whitelist.</p>
       </section>
-      <section class="card" id="logs-page" hidden>
-        <header class="card-head">
-          <h2 style="flex:1">Logs</h2>
-          <button id="btn-reload-logs" class="btn-outline">Muat Ulang</button>
-        </header>
-        <div class="table-wrap">
-          <table class="table">
-            <thead><tr><th>Waktu</th><th>Actor</th><th>Aksi</th><th>Sheet</th><th>UserID</th><th>Nama</th><th>Row</th></tr></thead>
-            <tbody id="body-logs"><tr><td colspan="7" class="center muted">Memuat…</td></tr></tbody>
-          </table>
-        </div>
-          </section>
 
       <!-- Whitelist V1 -->
       <section class="card" id="v1-page" hidden>
@@ -74,15 +61,11 @@
             <caption id="desc-v1" class="visually-hidden">Data whitelist V1</caption>
             <thead>
               <tr>
-                <th>UserID</th>
-                <th>Angka</th>
-                <th>1/0</th>
-                <th>Nama</th>
-                <th>Dibuat</th>
+                <th>UserID</th><th>Angka</th><th>1/0</th><th>Nama</th><th>Dibuat</th><th>Aksi</th>
               </tr>
             </thead>
             <tbody id="body-v1">
-              <tr><td colspan="5" class="center muted">Memuat…</td></tr>
+              <tr><td colspan="6" class="center muted">Memuat…</td></tr>
             </tbody>
           </table>
         </div>
@@ -103,15 +86,29 @@
             <caption id="desc-v2" class="visually-hidden">Data whitelist V2</caption>
             <thead>
               <tr>
-                <th>UserID</th>
-                <th>Angka</th>
-                <th>1/0</th>
-                <th>Kode</th>
-                <th>Nama</th>
+                <th>UserID</th><th>Angka</th><th>1/0</th><th>Kode</th><th>Nama</th><th>Aksi</th>
               </tr>
             </thead>
             <tbody id="body-v2">
-              <tr><td colspan="5" class="center muted">Memuat…</td></tr>
+              <tr><td colspan="6" class="center muted">Memuat…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Logs -->
+      <section class="card" id="logs-page" hidden>
+        <header class="card-head">
+          <h2 style="flex:1">Logs</h2>
+          <button id="btn-reload-logs" class="btn-outline">Muat Ulang</button>
+        </header>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr><th>Waktu</th><th>Actor</th><th>Aksi</th><th>Sheet</th><th>UserID</th><th>Nama</th><th>Row</th></tr>
+            </thead>
+            <tbody id="body-logs">
+              <tr><td colspan="7" class="center muted">Memuat…</td></tr>
             </tbody>
           </table>
         </div>
@@ -119,7 +116,7 @@
     </main>
   </div>
 
-  <!-- Modal (dipakai kedua sheet) -->
+  <!-- Modal Create -->
   <dialog id="modal" class="modal">
     <form id="form-create" method="dialog">
       <h3 class="modal-title">Buat Whitelist</h3>
@@ -133,18 +130,14 @@
       </label>
 
       <label class="field"><span>Boolean 1/0 (C)</span>
-        <select id="f-flag">
-          <option value="1">1</option>
-          <option value="0">0</option>
-        </select>
+        <select id="f-flag"><option value="1">1</option><option value="0">0</option></select>
       </label>
 
-      <!-- Label & input ke-4 dinamis: Nama (V1) atau Kode (V2) -->
       <label class="field"><span id="label-extra">Nama (D)</span>
         <input id="f-extra" type="text" required />
       </label>
 
-      <!-- Tambahan nama untuk V2 (E) – disembunyikan di V1 via JS -->
+      <!-- kolom nama untuk V2 (E) -->
       <label class="field" id="wrap-v2-nama" style="display:none;"><span>Nama (E)</span>
         <input id="f-nama-v2" type="text" />
       </label>
@@ -156,16 +149,18 @@
       <div id="create-state" class="state" aria-live="polite"></div>
     </form>
   </dialog>
-<dialog id="confirm" class="modal">
-  <form method="dialog" class="card" style="background:rgba(0,0,0,.6)">
-    <h3 class="modal-title" style="color:#fff">PERINGATAN!</h3>
-    <p id="confirm-text" style="margin:.5rem 0 1rem"></p>
-    <div class="modal-actions" style="justify-content:center">
-      <button value="cancel" class="btn-success" id="btn-no" type="button">Tidak</button>
-      <button value="default" class="btn-danger" id="btn-yes"  type="button">Ya</button>
-    </div>
-  </form>
-</dialog>
+
+  <!-- Modal Konfirmasi Hapus -->
+  <dialog id="confirm" class="modal">
+    <form method="dialog" class="card" style="background:rgba(0,0,0,.7)">
+      <h3 class="modal-title" style="color:#fff">PERINGATAN!</h3>
+      <p id="confirm-text" style="margin:.5rem 0 1rem"></p>
+      <div class="modal-actions" style="justify-content:center">
+        <button value="cancel" class="btn-success" id="btn-no" type="button">Tidak</button>
+        <button value="default" class="btn-danger"  id="btn-yes" type="button">Ya</button>
+      </div>
+    </form>
+  </dialog>
 
   <script type="module" src="js/admin.js"></script>
 </body>
