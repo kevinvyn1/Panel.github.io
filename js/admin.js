@@ -23,11 +23,23 @@ function switchPage(page){
 }
 
 // Generic fetch for spreadsheet with token
-async function fetchSheet(url){
-  const res = await fetch(url,{ headers:{ 'x-api-key': SHEET_TOKEN } });
+async function fetchWithToken(url){
+  // coba header x-api-key (kalau backend terima header)
+  let res = await fetch(url, { headers:{ 'x-api-key': CONFIG.SHEET_TOKEN } });
+  // fallback pakai ?token= kalau header nggak didukung Apps Script
+  if(res.status === 401){
+    const u = new URL(url); u.searchParams.set('token', CONFIG.SHEET_TOKEN);
+    res = await fetch(u.toString());
+  }
   if(!res.ok) throw new Error(await res.text());
   return res.json();
 }
+
+// V1: A,B,C,D,E => userid, angka, flag, nama, created
+const dataV1 = await fetchWithToken(CONFIG.SHEET_API_URL_V1);
+
+// V2: A,B,C,D,E => userid, angka, flag, kode, nama
+const dataV2 = await fetchWithToken(CONFIG.SHEET_API_URL_V2);
 
 // === V1 ===
 const bodyV1 = document.getElementById('body-v1');
