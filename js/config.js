@@ -14,5 +14,5 @@ export const DATA_PROVIDER = 'sheet';
 export const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxsW3mF8uaALNlQS3ZiT5KZ_8BVSSTXDoB786QxuiMgX-2t2scEW0IpYJRxo2T9HdhV/exec";
 export const SHEET_TOKEN   = "2099812378781239012221";
 // Endpoints Spreadsheet khusus
-export const SHEET_API_URL_V1 = "https://script.google.com/macros/s/AKfycbzOd7VxZJjnnwx76u3WQiB8dmeISqt-0sAgK3-xWoJz03E5G3znnx6lTOUHG5FtzCre/exec";
-export const SHEET_API_URL_V2 = "2099812378781239012221";
+export const SHEET_API_URL_V1 = "https://script.google.com/macros/s/AKfycbxsW3mF8uaALNlQS3ZiT5KZ_8BVSSTXDoB786QxuiMgX-2t2scEW0IpYJRxo2T9HdhV/exec";
+export const SHEET_API_URL_V2 = "https://script.google.com/macros/s/AKfycbzOd7VxZJjnnwx76u3WQiB8dmeISqt-0sAgK3-xWoJz03E5G3znnx6lTOUHG5FtzCre/exec";
