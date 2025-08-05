@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Panel • Whitelist</title>
 
-  <!-- CSP -->
+  <!-- CSP (sudah termasuk script.google.com & script.googleusercontent.com) -->
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; base-uri 'none';
                  connect-src 'self' https://*.supabase.co https://script.google.com https://script.googleusercontent.com;
@@ -14,60 +14,47 @@
                  script-src 'self' https://esm.sh https://script.google.com https://script.googleusercontent.com;
                  script-src-elem 'self' https://esm.sh https://script.google.com https://script.googleusercontent.com;
                  upgrade-insecure-requests">
-
   <link rel="stylesheet" href="assets/styles.css" />
 </head>
-<body class="no-select admin">
-  <!-- ===== Sidebar ===== -->
-  <aside class="sidebar">
-    <h2 class="logo">Inferno</h2>
-    <nav>
-      <ul>
-        <li><a href="#" class="active">Whitelist</a></li>
-        <!-- Tambahkan menu lain di sini jika perlu -->
-      </ul>
-    </nav>
-  </aside>
+<body class="no-select">
+  <header class="topbar">
+    <h1>Admin Panel</h1>
+    <div class="spacer"></div>
+    <button id="btn-logout" class="btn-outline">Keluar</button>
+  </header>
 
-  <!-- ===== Main panel ===== -->
-  <div class="panel">
-    <header class="topbar">
-      <h1>Home</h1>
-      <div class="spacer" style="flex:1"></div>
-      <button id="btn-logout" class="btn-outline">Keluar</button>
-    </header>
-
-    <main class="container">
-      <section class="card">
-        <header class="card-head" style="display:flex;align-items:center;gap:.8rem;">
-          <h2 style="flex:1">Whitelist</h2>
+  <main class="container">
+    <section class="card">
+      <header class="card-head">
+        <h2>Whitelist</h2>
+        <div style="display:flex; gap:.5rem; align-items:center;">
           <button id="btn-open-modal" class="btn">Buat Whitelist</button>
           <button id="btn-reload" class="btn-outline">Muat Ulang</button>
           <small id="source-indicator" class="muted"></small>
-        </header>
-
-        <div id="table-wrap" class="table-wrap">
-          <table class="table" id="whitelist-table" aria-describedby="table-desc">
-            <caption id="table-desc" class="visually-hidden">Tabel data whitelist</caption>
-            <thead>
-              <tr>
-                <th>UserID</th>
-                <th>Angka</th>
-                <th>1/0</th>
-                <th>Nama</th>
-                <th>Dibuat</th>
-              </tr>
-            </thead>
-            <tbody id="whitelist-body">
-              <tr><td colspan="5" class="muted center">Memuat data…</td></tr>
-            </tbody>
-          </table>
         </div>
-      </section>
-    </main>
-  </div>
+      </header>
 
-  <!-- ===== Modal ===== -->
+      <div id="table-wrap" class="table-wrap">
+        <table class="table" id="whitelist-table" aria-describedby="table-desc">
+          <caption id="table-desc" class="visually-hidden">Tabel data whitelist</caption>
+          <thead>
+            <tr>
+              <th>UserID</th>
+              <th>Angka</th>
+              <th>1/0</th>
+              <th>Nama</th>
+              <th>Dibuat</th>
+            </tr>
+          </thead>
+          <tbody id="whitelist-body">
+            <tr><td colspan="5" class="muted center">Memuat data…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal -->
   <dialog id="modal" class="modal">
     <form id="form-create" method="dialog">
       <h3 class="modal-title">Buat Whitelist</h3>
