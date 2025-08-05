@@ -75,41 +75,42 @@ input:focus,select:focus{outline:none;border-color:var(--red);}
 .state{margin-top:.75rem;min-height:1.2rem;color:#ffd4d4;}
 /* ===== Modal polish: no white edges + rounded soft ===== */
 
-/* backdrop gelap & halus */
+/* === HILANGIN BACKGROUND PUTIH DARI <dialog> === */
+dialog,
+#modal {
+  background: transparent !important;   /* <-- kunci */
+  border: none !important;
+  padding: 0;
+  outline: none;
+  box-shadow: none;
+}
+
+/* backdrop tetap gelap */
 #modal::backdrop{
   background: rgba(0,0,0,.66);
   backdrop-filter: blur(2px);
 }
 
-/* dialog container */
-#modal{
-  border: none;          /* hapus garis putih pinggir dialog */
-  padding: 0;
-  outline: none;
-}
-
-/* posisikan di tengah */
+/* center dialog */
 #modal[open]{
   position: fixed;
   inset: 50% auto auto 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%,-50%);
 }
 
-/* panel utama */
+/* panel isi (form) dengan sudut halus & clip */
 #modal form{
-  /* warna merah gelap halus, tanpa border */
   background: rgba(24, 2, 2, .90);
-  border: none;                 /* <-- hapus corner/border putih */
-  border-radius: 22px;          /* <-- sudut lebih bulat */
-  overflow: hidden;             /* <-- clip isi biar sudut nggak tajam */
+  border: none;
+  border-radius: 22px;
+  overflow: hidden;             /* clip isi biar sudut nggak tajam */
   padding: 18px 20px 22px;
   color: #fff;
-
-  /* bayangan lembut, bukan tajam */
-  box-shadow:
-    0 18px 50px rgba(0,0,0,.55),
-    0 2px 0 rgba(255,39,39,.08) inset; /* garis halus di atas (opsional) */
+  box-shadow: 0 18px 50px rgba(0,0,0,.55);
 }
+
+/* sisanya boleh tetap seperti sebelumnya (judul, input, tombol, dll) */
+
 
 /* judul tetap putih & center */
 #modal .modal-title{
