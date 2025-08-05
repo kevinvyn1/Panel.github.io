@@ -35,18 +35,14 @@ body::before{
   border-right:1px solid #2b0b0b;
   display:flex;flex-direction:column;
 }
-
 .logo{font-weight:800;font-size:1.3rem;padding:1.2rem 1.4rem;}
-
 .sidebar nav ul{list-style:none;margin:0;padding:.5rem 0;}
 .sidebar nav a{
   display:block;padding:.65rem 1.4rem;color:var(--text);text-decoration:none;font-size:.95rem;
   transition:background .15s,color .15s;
 }
 .sidebar nav a:hover,
-.sidebar nav a.active{
-  background:rgba(255,39,39,.15);color:var(--red);
-}
+.sidebar nav a.active{ background:rgba(255,39,39,.15);color:var(--red); }
 
 .panel{
   margin-left:240px;
@@ -67,11 +63,7 @@ body::before{
 /* ====================================================================
    Container & Card
    ==================================================================== */
-.container{
-  width:min(92vw,var(--max));
-  margin:2rem auto;
-  flex:1;
-}
+.container{ width:min(92vw,var(--max)); margin:2rem auto; flex:1; }
 
 .card{
   background:rgba(0,0,0,.55);
@@ -80,34 +72,25 @@ body::before{
   padding:1.5rem;
   box-shadow:0 8px 30px rgba(0,0,0,.45);
 }
-.card-head{
-  margin-bottom:1rem;
-  display:flex;align-items:center;gap:.8rem;
-}
+.card-head{ margin-bottom:1rem; display:flex; align-items:center; gap:.8rem; }
 
 /* ====================================================================
    Buttons
    ==================================================================== */
-.btn,
-.btn-outline{
-  padding:.7rem 1rem;border-radius:10px;font-weight:700;cursor:pointer;
-}
+.btn,.btn-outline{ padding:.7rem 1rem; border-radius:10px; font-weight:700; cursor:pointer; }
 .btn{
   background:linear-gradient(90deg,var(--red) 0%,#7c0f16 100%);
-  color:#fff;border:none;
-  box-shadow:0 0 20px rgba(255,39,39,.35);
+  color:#fff;border:none; box-shadow:0 0 20px rgba(255,39,39,.35);
 }
-.btn-outline{
-  background:transparent;border:1px solid #555;color:var(--text);
-}
+.btn-outline{ background:transparent; border:1px solid #555; color:var(--text); }
 
 /* ====================================================================
-   Table (scroll vertical in parent)
+   Table (scroll VERTICAL di parent)
    ==================================================================== */
 .table-wrap{
-  max-height:60vh;          /* area tabel dalam card; ubah sesuai selera */
-  overflow-y:auto;          /* scroll ke BAWAH */
-  overflow-x:hidden;        /* cegah scroll kanan */
+  max-height:60vh;          /* tinggi area tabel dalam card */
+  overflow-y:auto;          /* scroll ke bawah */
+  overflow-x:hidden;        /* cegah geser kanan */
   border-radius:12px;
   border:1px solid #2b0b0b;
 }
@@ -119,29 +102,31 @@ body::before{
 }
 
 .table thead th{
-  position:sticky;top:0;z-index:1;
+  position:sticky; top:0; z-index:1;
   background:#120506;
   padding:.6rem .8rem;
   border:1px solid #2b0b0b;
   text-align:left;
-  color:#ffdede;font-weight:700;
+  color:#ffdede; font-weight:700;
 }
 
 .table tbody td{
   padding:.6rem .8rem;
   border:1px solid #2b0b0b;
   text-align:left;
-  white-space:nowrap;
+  /* BIARKAN WRAP → supaya tidak “lari” ke kanan */
+  white-space:normal;
   overflow:hidden;
   text-overflow:ellipsis;
 }
 
-.table tbody tr:nth-child(even){
-  background:rgba(255,255,255,.03);
-}
+.table tbody tr:nth-child(even){ background:rgba(255,255,255,.03); }
 
 .center{text-align:center;}
 .muted{color:var(--muted);}
+.visually-hidden{
+  position:absolute; width:1px; height:1px; margin:-1px; border:0; padding:0; clip:rect(0 0 0 0); overflow:hidden;
+}
 
 /* ====================================================================
    Modal
