@@ -47,36 +47,45 @@
       </section>
 
       <!-- V1 -->
-      <section class="card" id="v1-page" hidden>
-        <header class="card-head">
-          <h2 style="flex:1">Whitelist V1</h2>
-          <button id="btn-open-v1"  class="btn">Buat Whitelist</button>
-          <button id="btn-reload-v1" class="btn-outline">Muat Ulang</button>
-        </header>
-        <div class="table-wrap">
-          <table class="table">
-            <thead><tr><th>UserID</th><th>Angka</th><th>1/0</th><th>Nama</th><th>Dibuat</th></tr></thead>
-            <tbody id="body-v1"><tr><td colspan="5" class="center muted">Memuat…</td></tr></tbody>
-          </table>
-        </div>
-      </section>
+    <!-- Whitelist V1 -->
+<section class="card" id="v1-page" hidden>
+  <header class="card-head">
+    <h2 style="flex:1">Whitelist V1</h2>
+    <button id="btn-open-v1"  class="btn">Buat Whitelist</button>
+    <button id="btn-reload-v1" class="btn-outline">Muat Ulang</button>
+  </header>
 
-      <!-- V2 -->
-      <section class="card" id="v2-page" hidden>
-        <header class="card-head">
-          <h2 style="flex:1">Whitelist V2</h2>
-          <button id="btn-open-v2"  class="btn">Buat Whitelist</button>
-          <button id="btn-reload-v2" class="btn-outline">Muat Ulang</button>
-        </header>
-        <div class="table-wrap">
-          <table class="table">
-            <thead><tr><th>UserID</th><th>Angka</th><th>1/0</th><th>Kode</th><th>Nama</th></tr></thead>
-            <tbody id="body-v2"><tr><td colspan="5" class="center muted">Memuat…</td></tr></tbody>
-          </table>
-        </div>
-      </section>
-    </main>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr><th>UserID</th><th>Angka</th><th>1/0</th><th>Nama</th><th>Dibuat</th></tr>
+      </thead>
+      <tbody class="tbody-scroll" id="body-v1">
+        <tr><td colspan="5" class="center muted">Memuat…</td></tr>
+      </tbody>
+    </table>
   </div>
+</section>
+
+<!-- Whitelist V2 -->
+<section class="card" id="v2-page" hidden>
+  <header class="card-head">
+    <h2 style="flex:1">Whitelist V2</h2>
+    <button id="btn-open-v2"  class="btn">Buat Whitelist</button>
+    <button id="btn-reload-v2" class="btn-outline">Muat Ulang</button>
+  </header>
+
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr><th>UserID</th><th>Angka</th><th>1/0</th><th>Kode</th><th>Nama</th></tr>
+      </thead>
+      <tbody class="tbody-scroll" id="body-v2">
+        <tr><td colspan="5" class="center muted">Memuat…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
 
   <!-- Modal (dipakai kedua sheet) -->
   <dialog id="modal" class="modal">
