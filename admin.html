@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Panel</title>
 
-  <!-- CSP (sudah longgar untuk Apps-Script + hCaptcha + Supabase) -->
+  <!-- CSP (Apps Script + Supabase + ESM) -->
   <meta http-equiv="Content-Security-Policy"
         content="
           default-src 'self';
@@ -50,14 +50,23 @@
       <section class="card" id="v1-page" hidden>
         <header class="card-head">
           <h2 style="flex:1">Whitelist V1</h2>
-          <button id="btn-open-v1"  class="btn">Buat Whitelist</button>
-          <button id="btn-reload-v1" class="btn-outline">Muat Ulang</button>
+          <div style="display:flex;gap:.5rem">
+            <button id="btn-open-v1"  class="btn">Buat Whitelist</button>
+            <button id="btn-reload-v1" class="btn-outline">Muat Ulang</button>
+          </div>
         </header>
 
         <div class="table-wrap">
-          <table class="table">
+          <table class="table" aria-describedby="desc-v1">
+            <caption id="desc-v1" class="visually-hidden">Data whitelist V1</caption>
             <thead>
-              <tr><th>UserID</th><th>Angka</th><th>1/0</th><th>Nama</th><th>Dibuat</th></tr>
+              <tr>
+                <th>UserID</th>
+                <th>Angka</th>
+                <th>1/0</th>
+                <th>Nama</th>
+                <th>Dibuat</th>
+              </tr>
             </thead>
             <tbody id="body-v1">
               <tr><td colspan="5" class="center muted">Memuat…</td></tr>
@@ -70,14 +79,23 @@
       <section class="card" id="v2-page" hidden>
         <header class="card-head">
           <h2 style="flex:1">Whitelist V2</h2>
-          <button id="btn-open-v2"  class="btn">Buat Whitelist</button>
-          <button id="btn-reload-v2" class="btn-outline">Muat Ulang</button>
+          <div style="display:flex;gap:.5rem">
+            <button id="btn-open-v2"  class="btn">Buat Whitelist</button>
+            <button id="btn-reload-v2" class="btn-outline">Muat Ulang</button>
+          </div>
         </header>
 
         <div class="table-wrap">
-          <table class="table">
+          <table class="table" aria-describedby="desc-v2">
+            <caption id="desc-v2" class="visually-hidden">Data whitelist V2</caption>
             <thead>
-              <tr><th>UserID</th><th>Angka</th><th>1/0</th><th>Kode</th><th>Nama</th></tr>
+              <tr>
+                <th>UserID</th>
+                <th>Angka</th>
+                <th>1/0</th>
+                <th>Kode</th>
+                <th>Nama</th>
+              </tr>
             </thead>
             <tbody id="body-v2">
               <tr><td colspan="5" class="center muted">Memuat…</td></tr>
@@ -85,8 +103,7 @@
           </table>
         </div>
       </section>
-    </main> <!-- ✅ tutup main di sini -->
-
+    </main>
   </div>
 
   <!-- Modal (dipakai kedua sheet) -->
@@ -94,12 +111,30 @@
     <form id="form-create" method="dialog">
       <h3 class="modal-title">Buat Whitelist</h3>
 
-      <label class="field"><span>UserID (A)</span><input id="f-userid" type="text" required /></label>
-      <label class="field"><span>Angka (B)</span><input id="f-angka" type="number" required /></label>
-      <label class="field"><span>Boolean 1/0 (C)</span>
-        <select id="f-flag"><option value="1">1</option><option value="0">0</option></select>
+      <label class="field"><span>UserID (A)</span>
+        <input id="f-userid" type="text" required />
       </label>
-      <label class="field"><span id="label-extra">Nama (D)</span><input id="f-extra" type="text" required /></label>
+
+      <label class="field"><span>Angka (B)</span>
+        <input id="f-angka" type="number" inputmode="numeric" required />
+      </label>
+
+      <label class="field"><span>Boolean 1/0 (C)</span>
+        <select id="f-flag">
+          <option value="1">1</option>
+          <option value="0">0</option>
+        </select>
+      </label>
+
+      <!-- Label & input ke-4 dinamis: Nama (V1) atau Kode (V2) -->
+      <label class="field"><span id="label-extra">Nama (D)</span>
+        <input id="f-extra" type="text" required />
+      </label>
+
+      <!-- Tambahan nama untuk V2 (E) – disembunyikan di V1 via JS -->
+      <label class="field" id="wrap-v2-nama" style="display:none;"><span>Nama (E)</span>
+        <input id="f-nama-v2" type="text" />
+      </label>
 
       <div class="modal-actions">
         <button value="cancel" class="btn-outline" type="button" id="btn-cancel">Batal</button>
