@@ -164,18 +164,27 @@ input, select{
 body.admin{
   min-height:100vh;
 }
-/* ===== Table wrap: buat scroll ke bawah ===== */
+/* ===== Table wrap: scroll ke bawah ===== */
 .table-wrap{
-  max-height: 55vh;        /* ubah sesuai selera */
-  overflow-y: auto;        /* hanya scroll vertikal */
-  overflow-x: hidden;      /* cegah scroll horizontal */
+  max-height: 60vh;      /* tinggi fleksibel */
+  overflow-y: auto;      /* hanya vertikal */
+  overflow-x: hidden;    /* cegah horizontal */
 }
 
-/* opsi: lebar tiap kolom agar tidak meluber & tetap responsif */
-.table td,
-.table th{
-  white-space: nowrap;      /* jangan bungkus teks */
+/* Table selalu selebar kartu */
+.table{
+  width: 100%;
+  table-layout: fixed;   /* kolom rebalance, tak meluber */
 }
+
+/* Potong teks panjang agar tidak bikin lebar kolom melebar */
+.table th,
+.table td{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 
 /* ===== Sidebar layout ===== */
 .sidebar{
