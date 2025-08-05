@@ -4,93 +4,70 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Panel • Whitelist</title>
-
-  <!-- CSP (sudah termasuk script.google.com & script.googleusercontent.com) -->
-  <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; base-uri 'none';
-                 connect-src 'self' https://*.supabase.co https://script.google.com https://script.googleusercontent.com;
-                 img-src 'self' data:; font-src 'self' data:;
-                 style-src 'self' 'unsafe-inline';
-                 script-src 'self' https://esm.sh https://script.google.com https://script.googleusercontent.com;
-                 script-src-elem 'self' https://esm.sh https://script.google.com https://script.googleusercontent.com;
-                 upgrade-insecure-requests">
-  <link rel="stylesheet" href="assets/styles.css" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
-<body class="no-select">
-  <header class="topbar">
-    <h1>Admin Panel</h1>
-    <div class="spacer"></div>
-    <button id="btn-logout" class="btn-outline">Keluar</button>
-  </header>
+<body class="admin">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <h2 class="logo">INFERNO</h2>
+    <nav>
+      <ul>
+        <li><a href="#" data-page="home" class="active">Home</a></li>
+        <li><a href="#" data-page="v1">Whitelist V1</a></li>
+        <li><a href="#" data-page="v2">Whitelist V2</a></li>
+      </ul>
+    </nav>
+  </aside>
 
-  <main class="container">
-    <section class="card">
-      <header class="card-head">
-        <h2>Whitelist</h2>
-        <div style="display:flex; gap:.5rem; align-items:center;">
-          <button id="btn-open-modal" class="btn">Buat Whitelist</button>
-          <button id="btn-reload" class="btn-outline">Muat Ulang</button>
-          <small id="source-indicator" class="muted"></small>
+  <!-- Main -->
+  <div class="panel">
+    <header class="topbar">
+      <h1 id="page-title">Home</h1>
+      <div style="flex:1"></div>
+      <button class="btn-outline" id="btn-logout">Keluar</button>
+    </header>
+
+    <main class="container">
+      <!-- Home section -->
+      <section class="card" id="home-page">
+        <h2>Selamat datang di Admin Panel</h2>
+        <p>Gunakan menu di kiri untuk mengelola whitelist.</p>
+      </section>
+
+      <!-- Whitelist V1 -->
+      <section class="card" id="v1-page" style="display:none;">
+        <header class="card-head">
+          <h2 style="flex:1">Whitelist V1</h2>
+          <button id="btn-reload-v1" class="btn-outline">Muat Ulang</button>
+        </header>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr><th>UserID</th><th>Angka</th><th>1/0</th><th>Nama</th><th>Dibuat</th></tr>
+            </thead>
+            <tbody id="body-v1"><tr><td colspan="5" class="center muted">Memuat…</td></tr></tbody>
+          </table>
         </div>
-      </header>
+      </section>
 
-      <div id="table-wrap" class="table-wrap">
-        <table class="table" id="whitelist-table" aria-describedby="table-desc">
-          <caption id="table-desc" class="visually-hidden">Tabel data whitelist</caption>
-          <thead>
-            <tr>
-              <th>UserID</th>
-              <th>Angka</th>
-              <th>1/0</th>
-              <th>Nama</th>
-              <th>Dibuat</th>
-            </tr>
-          </thead>
-          <tbody id="whitelist-body">
-            <tr><td colspan="5" class="muted center">Memuat data…</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-  </main>
+      <!-- Whitelist V2 -->
+      <section class="card" id="v2-page" style="display:none;">
+        <header class="card-head">
+          <h2 style="flex:1">Whitelist V2</h2>
+          <button id="btn-reload-v2" class="btn-outline">Muat Ulang</button>
+        </header>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr><th>UserID</th><th>Angka</th><th>1/0</th><th>Kode</th><th>Nama</th></tr>
+            </thead>
+            <tbody id="body-v2"><tr><td colspan="5" class="center muted">Memuat…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
 
-  <!-- Modal -->
-  <dialog id="modal" class="modal">
-    <form id="form-create" method="dialog">
-      <h3 class="modal-title">Buat Whitelist</h3>
-
-      <label class="field">
-        <span class="field-label">UserID (A)</span>
-        <input id="f-userid" name="userid" type="text" required />
-      </label>
-
-      <label class="field">
-        <span class="field-label">Angka (B)</span>
-        <input id="f-angka" name="angka" type="number" required inputmode="numeric" />
-      </label>
-
-      <label class="field">
-        <span class="field-label">Boolean 1/0 (C)</span>
-        <select id="f-flag" name="flag" required>
-          <option value="1">1</option>
-          <option value="0">0</option>
-        </select>
-      </label>
-
-      <label class="field">
-        <span class="field-label">Nama (D)</span>
-        <input id="f-nama" name="nama" type="text" required />
-      </label>
-
-      <div class="modal-actions">
-        <button value="cancel" class="btn-outline" type="button" id="btn-cancel">Batal</button>
-        <button value="default" class="btn" type="submit">Simpan</button>
-      </div>
-
-      <div id="create-state" class="state" role="status" aria-live="polite"></div>
-    </form>
-  </dialog>
-
-  <script type="module" src="js/admin.js"></script>
+<script type="module" src="js/admin.js"></script>
 </body>
 </html>

@@ -1,29 +1,74 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { SUPABASE_URL, SUPABASE_ANON_KEY, SESSION_INACTIVITY_MINUTES, REQUIRE_ADMIN, DATA_PROVIDER, SHEET_API_URL, SHEET_TOKEN } from './config.js';
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth:{ autoRefreshToken:true, persistSession:true, detectSessionInUrl:false } });
-window.addEventListener('contextmenu', e => e.preventDefault(), { passive:false });
-const tbody=document.getElementById('whitelist-body'), modal=document.getElementById('modal'), form=document.getElementById('form-create'), createState=document.getElementById('create-state');
-const btnOpen=document.getElementById('btn-open-modal'), btnCancel=document.getElementById('btn-cancel'), btnLogout=document.getElementById('btn-logout'), btnReload=document.getElementById('btn-reload');
-const indicator=document.getElementById('source-indicator');
-btnLogout.addEventListener('click', async ()=>{ await supabase.auth.signOut(); location.replace('index.html'); });
-btnOpen.addEventListener('click', ()=>modal.showModal()); btnCancel.addEventListener('click', ()=>modal.close()); btnReload.addEventListener('click', ()=>loadTable());
-indicator.textContent = `Sumber data: ${DATA_PROVIDER==='sheet'?'Google Sheets (JSONP)':'Supabase'}`;
-async function ensureAuth(){ const { data:{ session } } = await supabase.auth.getSession(); if(!session){ location.replace('index.html'); return null; }
-  if(REQUIRE_ADMIN){ const { data:admins, error } = await supabase.from('admins').select('user_id').eq('user_id', session.user.id).limit(1);
-    if(error||!admins||admins.length===0){ await supabase.auth.signOut(); alert('Akses admin diperlukan.'); location.replace('index.html'); return null; } } return session; }
-function jsonp(url){ return new Promise((resolve,reject)=>{ const cb='cb_'+Math.random().toString(36).slice(2); const s=document.createElement('script');
-  window[cb]=(data)=>{ resolve(data); delete window[cb]; s.remove(); }; s.onerror=()=>{ reject(new Error('JSONP error')); delete window[cb]; s.remove(); };
-  s.src=url+(url.includes('?')?'&':'?')+'callback='+cb; document.body.appendChild(s); }); }
-async function sheetList(){ const url=`${SHEET_API_URL}?token=${encodeURIComponent(SHEET_TOKEN)}`; return await jsonp(url); }
-async function sheetInsert(payload){ const body=new URLSearchParams({ token:SHEET_TOKEN, ...payload, flag:payload.flag?'1':'0' });
-  await fetch(SHEET_API_URL,{ method:'POST', mode:'no-cors', headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'}, body }); return { ok:true }; }
-async function sbList(){ const { data, error } = await supabase.from('whitelist').select('*').order('created_at',{ascending:false}).limit(200); if(error) throw error; return data; }
-async function sbInsert(payload){ const { error } = await supabase.from('whitelist').insert(payload).single(); if(error) throw error; return { ok:true }; }
-function rowHTML(r){ return `<tr><td>${r.user_id??''}</td><td>${r.angka??''}</td><td>${Number(r.flag)?1:0}</td><td>${(r.nama??'').replace(/[<>]/g,'')}</td><td>${r.created_at?new Date(r.created_at).toLocaleString():''}</td></tr>`; }
-async function loadTable(){ tbody.innerHTML=`<tr><td colspan="5" class="muted center">Memuat…</td></tr>`; try{ const data=(DATA_PROVIDER==='sheet')?await sheetList():await sbList();
-  if(!data||data.length===0){ tbody.innerHTML=`<tr><td colspan="5" class="center muted">Belum ada data.</td></tr>`; return; } tbody.innerHTML=data.map(rowHTML).join(''); }catch(err){ console.error(err);
-  tbody.innerHTML=`<tr><td colspan="5" class="center">Gagal memuat.</td></tr>`; } }
-form.addEventListener('submit', async (e)=>{ e.preventDefault(); createState.textContent='Menyimpan…'; const payload={ user_id:document.getElementById('f-userid').value.trim(), angka:String(document.getElementById('f-angka').value), flag:document.getElementById('f-flag').value==='1', nama:document.getElementById('f-nama').value.trim() };
-  try{ const res=(DATA_PROVIDER==='sheet')?await sheetInsert(payload):await sbInsert(payload); createState.textContent='Berhasil disimpan.'; form.reset(); modal.close(); setTimeout(loadTable,800); }
-  catch(err){ console.error(err); createState.textContent='Gagal menyimpan.'; } });
-(async ()=>{ const session=await ensureAuth(); if(session) await loadTable(); })();
+const links = document.querySelectorAll('.sidebar nav a');
+const pages = {
+  home: document.getElementById('home-page'),
+  v1: document.getElementById('v1-page'),
+  v2: document.getElementById('v2-page')
+};
+const titleEl = document.getElementById('page-title');
+
+links.forEach(l=>{
+  l.addEventListener('click',e=>{
+    e.preventDefault();
+    const page = l.dataset.page;
+    switchPage(page);
+  });
+});
+
+function switchPage(page){
+  Object.keys(pages).forEach(k=>pages[k].style.display = k===page ? '' : 'none');
+  links.forEach(a=>a.classList.toggle('active', a.dataset.page===page));
+  titleEl.textContent = page==='home'?'Home':(page==='v1'?'Whitelist V1':'Whitelist V2');
+  if(page==='v1'){ loadV1(); }
+  if(page==='v2'){ loadV2(); }
+}
+
+async function fetchJson(url){
+  const res = await fetch(url);
+  if(!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+/* === V1 === */
+const bodyV1 = document.getElementById('body-v1');
+document.getElementById('btn-reload-v1').addEventListener('click', loadV1);
+async function loadV1(){
+  bodyV1.innerHTML='<tr><td colspan="5" class="center muted">Memuat…</td></tr>';
+  try{
+    // Ganti URL di bawah dengan WebApp Apps Script spreadsheet V1
+    const data = await fetchJson('https://script.google.com/macros/s/REPLACE_V1_ENDPOINT/exec');
+    bodyV1.innerHTML='';
+    data.forEach(r=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td>${r.userid}</td><td>${r.angka}</td><td>${r.flag}</td><td>${r.nama}</td><td>${r.created}</td>`;
+      bodyV1.appendChild(tr);
+    });
+    if(!data.length) bodyV1.innerHTML='<tr><td colspan="5" class="center muted">Kosong</td></tr>';
+  }catch(err){
+    bodyV1.innerHTML='<tr><td colspan="5" class="center muted">Gagal memuat</td></tr>';
+    console.error(err);
+  }
+}
+
+/* === V2 === */
+const bodyV2 = document.getElementById('body-v2');
+document.getElementById('btn-reload-v2').addEventListener('click', loadV2);
+async function loadV2(){
+  bodyV2.innerHTML='<tr><td colspan="5" class="center muted">Memuat…</td></tr>';
+  try{
+    // Ganti URL di bawah dengan WebApp Apps Script spreadsheet V2
+    const data = await fetchJson('https://script.google.com/macros/s/REPLACE_V2_ENDPOINT/exec');
+    bodyV2.innerHTML='';
+    data.forEach(r=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td>${r.userid}</td><td>${r.angka}</td><td>${r.flag}</td><td>${r.kode}</td><td>${r.nama}</td>`;
+      bodyV2.appendChild(tr);
+    });
+    if(!data.length) bodyV2.innerHTML='<tr><td colspan="5" class="center muted">Kosong</td></tr>';
+  }catch(err){
+    bodyV2.innerHTML='<tr><td colspan="5" class="center muted">Gagal memuat</td></tr>';
+    console.error(err);
+  }
+}
+
+/* default */
+switchPage('home');
