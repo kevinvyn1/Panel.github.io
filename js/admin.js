@@ -1,129 +1,126 @@
-/* =======================================================================
-   Admin Panel – Whitelist V1 & V2
-   ======================================================================= */
-
 import {
-  DATA_PROVIDER,            // 'sheet' | 'supabase'
-  SHEET_API_URL_V1,
-  SHEET_API_URL_V2,
-  SHEET_TOKEN,
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY
+  DATA_PROVIDER,
+  SHEET_API_URL_V1, SHEET_API_URL_V2, SHEET_TOKEN,
+  SUPABASE_URL,      SUPABASE_ANON_KEY
 } from './config.js';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-/* ---------- 1. Sidebar Navigation ---------- */
+/* ---------- Supabase client (kalau dipakai) ---------- */
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* ---------- Elemen ---------- */
 const links  = document.querySelectorAll('.sidebar nav a');
-const pages  = {
-  home : document.getElementById('home-page'),
-  v1   : document.getElementById('v1-page'),
-  v2   : document.getElementById('v2-page')
-};
-const titleEl = document.getElementById('page-title');
+const pages  = {home:'#home-page', v1:'#v1-page', v2:'#v2-page'};
+const title  = document.getElementById('page-title');
 
-links.forEach(a=>{
-  a.addEventListener('click', e=>{
-    e.preventDefault();
-    switchPage(a.dataset.page);
-  });
-});
+links.forEach(a=>a.onclick = e => {e.preventDefault(); switchPage(a.dataset.page);});
+switchPage('home');
 
-function switchPage(page){
-  Object.entries(pages).forEach(([k,sec])=>{ sec.style.display = k===page ? '' : 'none'; });
-  links.forEach(a=>a.classList.toggle('active', a.dataset.page===page));
-  titleEl.textContent = page==='home' ? 'Home' : page==='v1' ? 'Whitelist V1' : 'Whitelist V2';
-  if(page==='v1') loadV1();
-  if(page==='v2') loadV2();
+/* ---------- NAV ---------- */
+function switchPage(p){
+  for(const [k,sel] of Object.entries(pages)) document.querySelector(sel).hidden = k!==p;
+  links.forEach(a=>a.classList.toggle('active', a.dataset.page===p));
+  title.textContent = p==='home' ? 'Home' : p==='v1' ? 'Whitelist V1' : 'Whitelist V2';
+  if(p==='v1') loadV1(); if(p==='v2') loadV2();
 }
 
-/* ---------- 2. Data Fetcher ---------- */
-function fetchSheet(url){
-  const u = new URL(url);
-  u.searchParams.set('token', SHEET_TOKEN);          // query-string token
-  return fetch(u.toString()).then(r=>{
-    if(!r.ok) throw new Error(`${r.status} ${r.statusText}`);
-    return r.json();
-  });
-}
+/* ---------- FETCH HELPERS ---------- */
+const qsToken = v=>`${v}${v.includes('?')?'&':'?'}token=${encodeURIComponent(SHEET_TOKEN)}`;
+const fetchSheet = url => fetch(qsToken(url)).then(r=>r.json());
 
-function fetchSupabase(table){
-  return fetch(`${SUPABASE_URL}/rest/v1/${table}?select=*`, {
-    headers:{
-      apikey:        SUPABASE_ANON_KEY,
-      authorization: `Bearer ${SUPABASE_ANON_KEY}`
-    }
-  }).then(r=>{
-    if(!r.ok) throw new Error(`${r.status} ${r.statusText}`);
-    return r.json();
-  });
-}
+const fetchSupabase = tbl =>
+  fetch(`${SUPABASE_URL}/rest/v1/${tbl}?select=*`,{
+    headers:{ apikey:SUPABASE_ANON_KEY, authorization:`Bearer ${SUPABASE_ANON_KEY}` }
+  }).then(r=>r.json());
 
-const getV1   = DATA_PROVIDER==='supabase'
-               ? () => fetchSupabase('whitelist_v1')
-               : () => fetchSheet(SHEET_API_URL_V1);
-
-const getV2   = DATA_PROVIDER==='supabase'
-               ? () => fetchSupabase('whitelist_v2')
-               : () => fetchSheet(SHEET_API_URL_V2);
-
-/* ---------- 3. Whitelist V1 ---------- */
-const bodyV1 = document.getElementById('body-v1');
-document.getElementById('btn-reload-v1').addEventListener('click', loadV1);
+/* ---------- V1 ---------- */
+const tbody1 = document.querySelector('#body-v1');
+document.querySelector('#btn-reload-v1').onclick = loadV1;
+document.querySelector('#btn-open-v1' ).onclick = ()=>openModal('v1');
 
 async function loadV1(){
-  bodyV1.innerHTML = '<tr><td colspan="5" class="center muted">Memuat…</td></tr>';
-  try{
-    const data = await getV1();
-    const rows = data.map(r=>({
-      userid : r.userid || r.user_id,
-      angka  : r.angka,
-      flag   : r.flag ? 1 : 0,
-      nama   : r.nama || r.name,
-      created: r.created || r.created_at || ''
-    }));
-    renderRows(bodyV1, rows, r=>`
-      <td>${r.userid}</td><td>${r.angka}</td><td>${r.flag}</td><td>${r.nama}</td><td>${r.created}</td>
-    `);
-  }catch(err){ showError(bodyV1, err); }
+  tbody1.innerHTML = rowLoading(5);
+  const data = DATA_PROVIDER==='sheet' ? await fetchSheet(SHEET_API_URL_V1)
+                                       : await fetchSupabase('whitelist_v1');
+  render(tbody1, data, r=>`
+    <td>${r.user_id||r.userid}</td><td>${r.angka}</td><td>${r.flag?1:0}</td><td>${r.nama||r.name}</td><td>${r.created_at||''}</td>`);
 }
 
-/* ---------- 4. Whitelist V2 ---------- */
-const bodyV2 = document.getElementById('body-v2');
-document.getElementById('btn-reload-v2').addEventListener('click', loadV2);
+/* ---------- V2 ---------- */
+const tbody2 = document.querySelector('#body-v2');
+document.querySelector('#btn-reload-v2').onclick = loadV2;
+document.querySelector('#btn-open-v2' ).onclick = ()=>openModal('v2');
 
 async function loadV2(){
-  bodyV2.innerHTML = '<tr><td colspan="5" class="center muted">Memuat…</td></tr>';
+  tbody2.innerHTML = rowLoading(5);
+  const data = DATA_PROVIDER==='sheet' ? await fetchSheet(SHEET_API_URL_V2)
+                                       : await fetchSupabase('whitelist_v2');
+  render(tbody2, data, r=>`
+    <td>${r.user_id||r.userid}</td><td>${r.angka}</td><td>${r.flag?1:0}</td><td>${r.kode}</td><td>${r.nama||r.name}</td>`);
+}
+
+/* ---------- Modal create (both sheets) ---------- */
+const modal = document.getElementById('modal');
+const labelExtra = document.getElementById('label-extra');
+const fieldExtra = document.getElementById('f-extra');
+let targetSheet = 'v1';       // default
+
+function openModal(sheet){
+  targetSheet = sheet;
+  labelExtra.textContent = sheet==='v1' ? 'Nama (D)' : 'Kode (D)';
+  fieldExtra.value = '';
+  modal.showModal();
+}
+document.getElementById('btn-cancel').onclick = ()=>modal.close();
+
+document.getElementById('form-create').onsubmit = async e=>{
+  e.preventDefault();
+  const payload = {
+    user_id: document.getElementById('f-userid').value.trim(),
+    angka  : document.getElementById('f-angka').value.trim(),
+    flag   : document.getElementById('f-flag').value==='1',
+  };
+  if(targetSheet==='v1') payload.nama = fieldExtra.value.trim();
+  else { payload.kode = fieldExtra.value.trim(); payload.nama = document.getElementById('f-nama').value.trim(); }
+
+  const state = document.getElementById('create-state');
+  state.textContent = 'Menyimpan…';
+
   try{
-    const data = await getV2();
-    const rows = data.map(r=>({
-      userid : r.userid || r.user_id,
-      angka  : r.angka,
-      flag   : r.flag ? 1 : 0,
-      kode   : r.kode,
-      nama   : r.nama || r.name
-    }));
-    renderRows(bodyV2, rows, r=>`
-      <td>${r.userid}</td><td>${r.angka}</td><td>${r.flag}</td><td>${r.kode}</td><td>${r.nama}</td>
-    `);
-  }catch(err){ showError(bodyV2, err); }
-}
-
-/* ---------- 5. Utilities ---------- */
-function renderRows(tbody, rows, tplFn){
-  tbody.innerHTML = '';
-  if(!rows.length){
-    tbody.innerHTML = '<tr><td colspan="99" class="center muted">Kosong</td></tr>';
-    return;
+    if(DATA_PROVIDER==='sheet'){
+      const body = new URLSearchParams({ token:SHEET_TOKEN, ...payload, flag:payload.flag?'1':'0' });
+      const url  = targetSheet==='v1'? SHEET_API_URL_V1 : SHEET_API_URL_V2;
+      await fetch(url, { method:'POST', mode:'no-cors',
+        headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'}, body });
+    }else{
+      const table = targetSheet==='v1' ? 'whitelist_v1' : 'whitelist_v2';
+      await fetchSupabaseInsert(table, payload);
+    }
+    state.textContent = 'Berhasil.';
+    modal.close();
+    targetSheet==='v1' ? loadV1() : loadV2();
+  }catch(err){
+    console.error(err);
+    state.textContent = 'Gagal menyimpan.';
   }
-  rows.forEach(r=>{
-    const tr = document.createElement('tr');
-    tr.innerHTML = tplFn(r);
-    tbody.appendChild(tr);
-  });
-}
-function showError(tbody, err){
-  console.error(err);
-  tbody.innerHTML = `<tr><td colspan="99" class="center muted">Gagal memuat: ${err.message}</td></tr>`;
+};
+
+function fetchSupabaseInsert(table, payload){
+  return fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method:'POST',
+    headers:{
+      apikey:SUPABASE_ANON_KEY,
+      authorization:`Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type':'application/json'
+    },
+    body: JSON.stringify(payload)
+  }).then(r=>{ if(!r.ok) throw new Error(r.statusText); });
 }
 
-/* ---------- 6. Init ---------- */
-switchPage('home');
+/* ---------- Utils ---------- */
+const rowLoading = colspan => `<tr><td colspan="${colspan}" class="center muted">Memuat…</td></tr>`;
+function render(tbody, arr, tpl){
+  if(!arr.length){ tbody.innerHTML = rowLoading(99).replace('Memuat…', 'Kosong'); return; }
+  tbody.innerHTML = arr.map(tpl).join('');
+}
+
