@@ -46,61 +46,63 @@
         <p>Pilih menu di kiri untuk mengelola whitelist.</p>
       </section>
 
-      <!-- V1 -->
-    <!-- Whitelist V1 -->
-<section class="card" id="v1-page" hidden>
-  <header class="card-head">
-    <h2 style="flex:1">Whitelist V1</h2>
-    <button id="btn-open-v1"  class="btn">Buat Whitelist</button>
-    <button id="btn-reload-v1" class="btn-outline">Muat Ulang</button>
-  </header>
+      <!-- Whitelist V1 -->
+      <section class="card" id="v1-page" hidden>
+        <header class="card-head">
+          <h2 style="flex:1">Whitelist V1</h2>
+          <button id="btn-open-v1"  class="btn">Buat Whitelist</button>
+          <button id="btn-reload-v1" class="btn-outline">Muat Ulang</button>
+        </header>
 
-  <div class="table-wrap">
-    <table class="table">
-      <thead>
-        <tr><th>UserID</th><th>Angka</th><th>1/0</th><th>Nama</th><th>Dibuat</th></tr>
-      </thead>
-      <tbody class="tbody-scroll" id="body-v1">
-        <tr><td colspan="5" class="center muted">Memuat…</td></tr>
-      </tbody>
-    </table>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr><th>UserID</th><th>Angka</th><th>1/0</th><th>Nama</th><th>Dibuat</th></tr>
+            </thead>
+            <tbody id="body-v1">
+              <tr><td colspan="5" class="center muted">Memuat…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Whitelist V2 -->
+      <section class="card" id="v2-page" hidden>
+        <header class="card-head">
+          <h2 style="flex:1">Whitelist V2</h2>
+          <button id="btn-open-v2"  class="btn">Buat Whitelist</button>
+          <button id="btn-reload-v2" class="btn-outline">Muat Ulang</button>
+        </header>
+
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr><th>UserID</th><th>Angka</th><th>1/0</th><th>Kode</th><th>Nama</th></tr>
+            </thead>
+            <tbody id="body-v2">
+              <tr><td colspan="5" class="center muted">Memuat…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main> <!-- ✅ tutup main di sini -->
+
   </div>
-</section>
-
-<!-- Whitelist V2 -->
-<section class="card" id="v2-page" hidden>
-  <header class="card-head">
-    <h2 style="flex:1">Whitelist V2</h2>
-    <button id="btn-open-v2"  class="btn">Buat Whitelist</button>
-    <button id="btn-reload-v2" class="btn-outline">Muat Ulang</button>
-  </header>
-
-  <div class="table-wrap">
-    <table class="table">
-      <thead>
-        <tr><th>UserID</th><th>Angka</th><th>1/0</th><th>Kode</th><th>Nama</th></tr>
-      </thead>
-      <tbody class="tbody-scroll" id="body-v2">
-        <tr><td colspan="5" class="center muted">Memuat…</td></tr>
-      </tbody>
-    </table>
-  </div>
-</section>
 
   <!-- Modal (dipakai kedua sheet) -->
   <dialog id="modal" class="modal">
     <form id="form-create" method="dialog">
       <h3 class="modal-title">Buat Whitelist</h3>
 
-      <label class="field"><span>UserID (A)</span><input id="f-userid" type="text"  required /></label>
-      <label class="field"><span>Angka (B)</span><input id="f-angka"  type="number" required /></label>
+      <label class="field"><span>UserID (A)</span><input id="f-userid" type="text" required /></label>
+      <label class="field"><span>Angka (B)</span><input id="f-angka" type="number" required /></label>
       <label class="field"><span>Boolean 1/0 (C)</span>
         <select id="f-flag"><option value="1">1</option><option value="0">0</option></select>
       </label>
       <label class="field"><span id="label-extra">Nama (D)</span><input id="f-extra" type="text" required /></label>
 
       <div class="modal-actions">
-        <button value="cancel"  class="btn-outline" type="button" id="btn-cancel">Batal</button>
+        <button value="cancel" class="btn-outline" type="button" id="btn-cancel">Batal</button>
         <button value="default" class="btn">Simpan</button>
       </div>
       <div id="create-state" class="state" aria-live="polite"></div>
