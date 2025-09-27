@@ -1,3 +1,4 @@
+import { hasValidSession } from './auth/auth.js';
 
 (function(){
   if (!hasValidSession()) {

@@ -31,5 +31,54 @@
     <footer class="foot"><small>© <span id="y"></span> — Inferno Studios [Roblox Store]</small></footer>
   </main>
   <script type="module" src="js/app.js"></script>
+
+    <script type="module">
+      import { setSession, clearSession, hasValidSession } from './auth/auth.js';
+      function ensureUI(){
+        if (document.getElementById('usup-auth-controls')) return;
+        const bar = document.createElement('div');
+        bar.id = 'usup-auth-controls';
+        bar.style.position = 'fixed';
+        bar.style.right = '12px';
+        bar.style.bottom = '12px';
+        bar.style.display = 'flex';
+        bar.style.gap = '8px';
+        bar.style.zIndex = '9999';
+
+        const loginBtn = document.createElement('button');
+        loginBtn.textContent = 'Login';
+        loginBtn.style.padding = '8px 12px';
+        loginBtn.style.borderRadius = '8px';
+        loginBtn.style.border = '1px solid #d1d5db';
+        loginBtn.style.background = '#111827';
+        loginBtn.style.color = '#fff';
+        loginBtn.style.cursor = 'pointer';
+
+        const logoutBtn = document.createElement('button');
+        logoutBtn.textContent = 'Logout';
+        logoutBtn.style.padding = '8px 12px';
+        logoutBtn.style.borderRadius = '8px';
+        logoutBtn.style.border = '1px solid #d1d5db';
+        logoutBtn.style.background = '#fff';
+        logoutBtn.style.color = '#111827';
+        logoutBtn.style.cursor = 'pointer';
+
+        loginBtn.addEventListener('click', async () => {
+          // simple session set, no password prompt since permintaan: tanpa login.html
+          setSession();
+          alert('Login sukses. Sekarang akses admin.html.');
+        });
+        logoutBtn.addEventListener('click', () => {
+          clearSession();
+          alert('Logout sukses.');
+        });
+
+        bar.appendChild(loginBtn);
+        bar.appendChild(logoutBtn);
+        document.body.appendChild(bar);
+      }
+      window.addEventListener('DOMContentLoaded', ensureUI);
+    </script>
+    
 </body>
 </html>
