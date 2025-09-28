@@ -1,24 +1,28 @@
-const AUTH_STORAGE_KEY = 'usup_auth_session';
-const AUTH_EXPIRY_MINUTES = 240;
-function nowTs(){ return Math.floor(Date.now()/1000); }
-export function setSession(){
-  const token = crypto.getRandomValues(new Uint8Array(16));
-  const tokenHex = Array.from(token).map(b=>b.toString(16).padStart(2,'0')).join('');
-  const payload = { token: tokenHex, ts: nowTs(), exp: nowTs() + AUTH_EXPIRY_MINUTES*60 };
-  localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(payload));
+// Safe session helpers backed by localStorage
+const KEY = "session";
+function safeRead() {
+  try { return JSON.parse(localStorage.getItem(KEY) || "null"); } catch { return null; }
 }
-export function clearSession(){ localStorage.removeItem(AUTH_STORAGE_KEY); }
-export function hasValidSession(){
-  try{
-    const raw = localStorage.getItem(AUTH_STORAGE_KEY);
-    if(!raw) return false;
-    const data = JSON.parse(raw);
-    return nowTs() < data.exp;
-  }catch(e){ return false; }
+function safeWrite(obj) {
+  try { localStorage.setItem(KEY, JSON.stringify(obj)); } catch {}
 }
-export async function sha256Hex(str){
-  const enc = new TextEncoder().encode(str);
-  const buf = await crypto.subtle.digest('SHA-256', enc);
-  const arr = Array.from(new Uint8Array(buf));
-  return arr.map(b => b.toString(16).padStart(2,'0')).join('');
+export function setSession(payload, maxAgeMinutes = 60) {
+  const exp = Date.now() + Math.max(1, maxAgeMinutes) * 60 * 1000;
+  safeWrite({ ...payload, exp });
+}
+export function getSession() {
+  return safeRead();
+}
+export function isAuthenticated() {
+  const s = safeRead();
+  return !!(s && typeof s.exp === "number" && s.exp > Date.now());
+}
+export function touchSession(minutes = 60) {
+  const s = safeRead();
+  if (!s) return;
+  s.exp = Date.now() + Math.max(1, minutes) * 60 * 1000;
+  safeWrite(s);
+}
+export function clearSession() {
+  try { localStorage.removeItem(KEY); } catch {}
 }

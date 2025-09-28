@@ -1,6 +1,10 @@
-import { hasValidSession } from './auth/auth.js';
-(function(){
-  if(!hasValidSession()){
-    window.location.replace('index.html');
+// Guard for admin pages
+import { isAuthenticated, touchSession } from './auth/auth.js';
+export function requireAuth() {
+  if (!isAuthenticated()) {
+    location.href = 'index.html';
+    return;
   }
-})();
+  // extend session on each visit
+  touchSession(60);
+}
