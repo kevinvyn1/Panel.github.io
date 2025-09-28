@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin (Protected)</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif; }
+    body { margin: 0; min-height: 100svh; display: grid; place-items: center; background: #0b1220; color: #e2e8f0; }
+    .wrap { width: min(96vw, 980px); }
+    .bar { display:flex; justify-content:space-between; align-items:center; padding: 16px 18px; background:#0f172a; border:1px solid #1f2937; border-radius: 14px; }
+    .title { font-weight: 700; font-size: 16px; }
+    .btn { padding: 10px 14px; border: 0; border-radius: 10px; background: #ef4444; color: white; font-weight: 600; cursor: pointer; }
+    .card { margin-top: 14px; padding: 18px; background:#0f172a; border:1px solid #1f2937; border-radius: 14px; }
+    .muted { color:#94a3b8; font-size: 14px; }
+    code { background: #0b1220; border:1px solid #1f2937; padding: 2px 6px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="bar">
+      <div class="title">Admin Panel — Terproteksi</div>
+      <button class="btn" id="logoutBtn">Logout</button>
+    </div>
+    <div class="card">
+      <p>Selamat datang! Halaman ini hanya dapat diakses jika status login masih valid.</p>
+      <p class="muted">Autocheck setiap 5 menit. Kamu bisa mengubah interval di <code>requireAuth({ checkEveryMs })</code>.</p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { requireAuth, logout } from './js/auth.js';
+
+    // Tahan akses bila belum login (akan langsung redirect ke index.html)
+    requireAuth({ checkEveryMs: 5 * 60 * 1000 });
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      logout();
+      // optional: redirect segera
+      location.replace('index.html');
+    });
+  </script>
+</body>
+</html>
