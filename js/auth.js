@@ -1,55 +1,56 @@
-// /js/auth.js (ES Module)
-// Client-side auth demo (situs statis). Proteksi ini mudah dibypass di devtools.
-// Gunakan solusi server-side untuk keamanan produksi.
+import { CONFIG } from './config.js';
 
-const AUTH_STORAGE_KEY = 'auth';
-const LOGIN_PAGE = 'index.html'; // asumsi login page ada di folder yang sama
+const STORE_KEY = 'session.v1';
 
-function readAuth() {
+function now() { return Date.now(); }
+function ttlMs(days) { return days * 24 * 60 * 60 * 1000; }
+
+export function getSession() {
   try {
-    return JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY) || 'null');
-  } catch {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+    if (!s || !s.token || !s.exp) return null;
+    if (s.exp < now()) { localStorage.removeItem(STORE_KEY); return null; }
+    return s;
+  } catch (e) {
+    console.warn('getSession error', e);
     return null;
   }
 }
 
-export function isLoggedIn() {
-  const data = readAuth();
-  if (!data) return false;
-  const { token, exp } = data;
-  if (!token || !exp) return false;
-  return Date.now() < exp;
+export function setSession(token, ttlDays = CONFIG.SESSION_TTL_DAYS) {
+  const exp = now() + ttlMs(ttlDays);
+  localStorage.setItem(STORE_KEY, JSON.stringify({ token, exp }));
 }
 
-function redirectToLogin() {
-  const next = encodeURIComponent(location.href); // arahkan balik ke URL penuh
-  location.replace(`${LOGIN_PAGE}?next=${next}`);
+export function clearSession() {
+  localStorage.removeItem(STORE_KEY);
 }
 
-export function requireAuth({ checkEveryMs = 5 * 60 * 1000 } = {}) {
-  if (!isLoggedIn()) {
-    redirectToLogin();
-    return false;
+export function requireAuth() {
+  const s = getSession();
+  if (!s) {
+    const next = encodeURIComponent(location.pathname.replace(/\/+/g,'/'));
+    location.replace(`index.html?next=${next}`);
+    throw new Error('Unauthenticated');
   }
-  // cek ulang tiap 5 menit
-  const t = setInterval(() => {
-    if (!isLoggedIn()) redirectToLogin();
-  }, checkEveryMs);
-
-  // sinkronisasi antar-tab
-  window.addEventListener('storage', (e) => {
-    if (e.key === AUTH_STORAGE_KEY && !isLoggedIn()) redirectToLogin();
-  });
-
-  window.addEventListener('beforeunload', () => clearInterval(t));
-  return true;
-}
-
-export function login({ token, ttlMs = 30 * 60 * 1000 } = {}) {
-  const exp = Date.now() + ttlMs; // default 30 menit
-  localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ token, exp }));
 }
 
 export function logout() {
-  localStorage.removeItem(AUTH_STORAGE_KEY);
+  clearSession();
+  const next = encodeURIComponent(location.pathname.replace(/\/+/g,'/'));
+  location.replace(`index.html?next=${next}`);
+}
+
+export async function login({ password }) {
+  // Password bisa diganti via localStorage.ADMIN_PASS
+  const PASS = localStorage.getItem('ADMIN_PASS') || CONFIG.ADMIN_PASS;
+  await new Promise(r => setTimeout(r, 200)); // sedikit delay UX
+  if (password === PASS) {
+    const token = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+    setSession(token);
+    return true;
+  }
+  throw new Error('Password salah');
 }

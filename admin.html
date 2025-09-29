@@ -1,44 +1,167 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Admin (Protected)</title>
-  <style>
-    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif; }
-    body { margin: 0; min-height: 100svh; display: grid; place-items: center; background: #0b1220; color: #e2e8f0; }
-    .wrap { width: min(96vw, 980px); }
-    .bar { display:flex; justify-content:space-between; align-items:center; padding: 16px 18px; background:#0f172a; border:1px solid #1f2937; border-radius: 14px; }
-    .title { font-weight: 700; font-size: 16px; }
-    .btn { padding: 10px 14px; border: 0; border-radius: 10px; background: #ef4444; color: white; font-weight: 600; cursor: pointer; }
-    .card { margin-top: 14px; padding: 18px; background:#0f172a; border:1px solid #1f2937; border-radius: 14px; }
-    .muted { color:#94a3b8; font-size: 14px; }
-    code { background: #0b1220; border:1px solid #1f2937; padding: 2px 6px; border-radius: 6px; }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel</title>
+
+  <meta http-equiv="Content-Security-Policy"
+        content="
+          default-src 'self';
+          connect-src 'self' https://*.supabase.co https://script.google.com https://script.googleusercontent.com;
+          img-src 'self' data:;
+          font-src 'self' data:;
+          style-src 'self' 'unsafe-inline';
+          script-src 'self' https://esm.sh https://script.google.com https://script.googleusercontent.com;
+          upgrade-insecure-requests">
+  <link rel="stylesheet" href="assets/styles.css" />
 </head>
-<body>
-  <div class="wrap">
-    <div class="bar">
-      <div class="title">Admin Panel — Terproteksi</div>
-      <button class="btn" id="logoutBtn">Logout</button>
-    </div>
-    <div class="card">
-      <p>Selamat datang! Halaman ini hanya dapat diakses jika status login masih valid.</p>
-      <p class="muted">Autocheck setiap 5 menit. Kamu bisa mengubah interval di <code>requireAuth({ checkEveryMs })</code>.</p>
-    </div>
+<body class="no-select admin">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <h2 class="logo">INFERNO</h2>
+    <nav>
+      <ul>
+        <li><a href="#" data-page="home" class="active">Home</a></li>
+        <li><a href="#" data-page="v1">Whitelist V1</a></li>
+        <li><a href="#" data-page="v2">Whitelist V2</a></li>
+        <li><a href="#" data-page="logs">Logs</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <div class="panel">
+    <header class="topbar">
+      <h1 id="page-title">Home</h1>
+      <div style="flex:1"></div>
+      <button id="btn-logout" class="btn-outline">Keluar</button>
+    </header>
+
+    <main class="container">
+      <!-- HOME -->
+      <section id="home-page">
+        <h2>Selamat datang di Admin Panel</h2>
+        <p>Pilih menu di kiri untuk mengelola whitelist.</p>
+      </section>
+
+      <!-- Whitelist V1 -->
+      <section class="card" id="v1-page" hidden>
+        <header class="card-head">
+          <h2 style="flex:1">Whitelist V1</h2>
+          <div style="display:flex;gap:.5rem">
+            <button id="btn-open-v1"  class="btn">Buat Whitelist</button>
+            <button id="btn-reload-v1" class="btn-outline">Muat Ulang</button>
+          </div>
+        </header>
+
+        <div class="table-wrap">
+          <table class="table" aria-describedby="desc-v1">
+            <caption id="desc-v1" class="visually-hidden">Data whitelist V1</caption>
+            <thead>
+              <tr>
+                <th>UserID</th><th>Angka</th><th>1/0</th><th>Nama</th><th>Dibuat</th><th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="body-v1">
+              <tr><td colspan="6" class="center muted">Memuat…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Whitelist V2 -->
+      <section class="card" id="v2-page" hidden>
+        <header class="card-head">
+          <h2 style="flex:1">Whitelist V2</h2>
+          <div style="display:flex;gap:.5rem">
+            <button id="btn-open-v2"  class="btn">Buat Whitelist</button>
+            <button id="btn-reload-v2" class="btn-outline">Muat Ulang</button>
+          </div>
+        </header>
+
+        <div class="table-wrap">
+          <table class="table" aria-describedby="desc-v2">
+            <caption id="desc-v2" class="visually-hidden">Data whitelist V2</caption>
+            <thead>
+              <tr>
+                <th>UserID</th><th>Angka</th><th>1/0</th><th>Kode</th><th>Nama</th><th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="body-v2">
+              <tr><td colspan="6" class="center muted">Memuat…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Logs -->
+      <section class="card" id="logs-page" hidden>
+        <header class="card-head">
+          <h2 style="flex:1">Logs</h2>
+          <button id="btn-reload-logs" class="btn-outline">Muat Ulang</button>
+        </header>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr><th>Waktu</th><th>Actor</th><th>Aksi</th><th>Sheet</th><th>UserID</th><th>Nama</th><th>Row</th></tr>
+            </thead>
+            <tbody id="body-logs">
+              <tr><td colspan="7" class="center muted">Memuat…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
   </div>
 
-  <script type="module">
-    import { requireAuth, logout } from './js/auth.js';
+  <!-- Modal Create -->
+  <dialog id="modal" class="modal">
+    <form id="form-create" method="dialog">
+      <h3 class="modal-title">Buat Whitelist</h3>
 
-    // Tahan akses bila belum login (akan langsung redirect ke index.html)
-    requireAuth({ checkEveryMs: 5 * 60 * 1000 });
+      <label class="field"><span>UserID (A)</span>
+        <input id="f-userid" type="text" required />
+      </label>
 
-    document.getElementById('logoutBtn').addEventListener('click', () => {
-      logout();
-      // optional: redirect segera
-      location.replace('index.html');
-    });
-  </script>
+      <label class="field"><span>Angka (B)</span>
+        <input id="f-angka" type="number" inputmode="numeric" required />
+      </label>
+
+      <label class="field"><span>Boolean 1/0 (C)</span>
+        <select id="f-flag"><option value="1">1</option><option value="0">0</option></select>
+      </label>
+
+      <label class="field"><span id="label-extra">Nama (D)</span>
+        <input id="f-extra" type="text" required />
+      </label>
+
+      <!-- kolom nama untuk V2 (E) -->
+      <label class="field" id="wrap-v2-nama" style="display:none;"><span>Nama (E)</span>
+        <input id="f-nama-v2" type="text" />
+      </label>
+
+      <div class="modal-actions">
+        <button value="cancel" class="btn-outline" type="button" id="btn-cancel">Batal</button>
+        <button value="default" class="btn">Simpan</button>
+      </div>
+      <div id="create-state" class="state" aria-live="polite"></div>
+    </form>
+  </dialog>
+
+  <!-- Modal Konfirmasi Hapus -->
+  <dialog id="confirm" class="modal">
+    <form method="dialog" class="card" style="background:rgba(0,0,0,.7)">
+      <h3 class="modal-title" style="color:#fff">PERINGATAN!</h3>
+      <p id="confirm-text" style="margin:.5rem 0 1rem"></p>
+      <div class="modal-actions" style="justify-content:center">
+        <button value="cancel" class="btn-success" id="btn-no" type="button">Tidak</button>
+        <button value="default" class="btn-danger"  id="btn-yes" type="button">Ya</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="js/admin.js"></script>
 </body>
 </html>

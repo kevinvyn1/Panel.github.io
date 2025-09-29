@@ -1,262 +1,316 @@
-import {
-  DATA_PROVIDER,
-  SHEET_API_URL_V1, SHEET_API_URL_V2, SHEET_TOKEN,
-  SUPABASE_URL,      SUPABASE_ANON_KEY
-} from './config.js';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { requireAuth, logout as doLogout } from './auth.js';
+import { CONFIG } from './config.js';
 
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+/* ======================== AUTH GUARD ======================== */
+requireAuth();
 
-/* ---------- Elemen ---------- */
-const links  = document.querySelectorAll('.sidebar nav a');
-const pages  = {home:'#home-page', v1:'#v1-page', v2:'#v2-page', logs:'#logs-page'};
-const title  = document.getElementById('page-title');
+/* ======================== HELPERS ======================== */
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+const esc = (s) => (s==null?'':String(s)).replace(/[&<>"]/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+const fmtTime = (t) => {
+  if (!t) return '';
+  try { const d = new Date(t); return d.toLocaleString(); } catch { return String(t); }
+};
+const to10 = (v) => Number(v) ? 1 : 0;
+function rowLoading(colspan) { return `<tr><td colspan="${colspan}" class="center muted">Memuat…</td></tr>`; }
+function rowEmpty(colspan) { return `<tr><td colspan="${colspan}" class="center muted">Belum ada data</td></tr>`; }
 
-/* ---------- NAV ---------- */
-links.forEach(a => a.onclick = (e) => { e.preventDefault(); switchPage(a.dataset.page); });
-switchPage('home');
+/* ======================== NAVIGATION ======================== */
+const pages = {
+  home: $('#home-page'),
+  v1:   $('#v1-page'),
+  v2:   $('#v2-page'),
+  logs: $('#logs-page'),
+};
+const title = $('#page-title');
 
-function switchPage(p){
-  for (const [k, sel] of Object.entries(pages)) {
-    const el = document.querySelector(sel);
-    if (el) el.hidden = (k !== p);
-  }
-  links.forEach(a => a.classList.toggle('active', a.dataset.page === p));
-  title.textContent = p === 'home' ? 'Home' : p === 'v1' ? 'Whitelist V1' : p === 'v2' ? 'Whitelist V2' : 'Logs';
+function switchPage(p) {
+  Object.entries(pages).forEach(([k, el]) => el?.toggleAttribute('hidden', k!==p));
+  $$('.sidebar a').forEach(a => a.classList.toggle('active', a.dataset.page===p));
+  if (title) title.textContent = (p==='home'?'Home':p.toUpperCase());
+}
+$$('.sidebar a').forEach(a => a.addEventListener('click', (e) => {
+  e.preventDefault();
+  const p = a.dataset.page;
+  if (!p) return;
+  switchPage(p);
   if (p === 'v1') loadV1();
   if (p === 'v2') loadV2();
   if (p === 'logs') loadLogs();
+}));
+switchPage('home');
+
+/* ======================== DATA PROVIDERS ======================== */
+async function httpJson(url, opts={}) {
+  const res = await fetch(url, { headers: { 'Content-Type':'application/json' }, ...opts });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
 }
 
-/* ---------- FETCH HELPERS ---------- */
-const qsToken    = v => `${v}${v.includes('?') ? '&' : '?'}token=${encodeURIComponent(SHEET_TOKEN)}`;
-const fetchSheet = (url) => fetch(qsToken(url)).then(r => { if(!r.ok) throw new Error(`${r.status} ${r.statusText}`); return r.json(); });
-const fetchSupabase = (path) => fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-  headers:{ apikey:SUPABASE_ANON_KEY, authorization:`Bearer ${SUPABASE_ANON_KEY}` }
-}).then(r=>{ if(!r.ok) throw new Error(r.statusText); return r.json(); });
-
-/* ---------- utils template ---------- */
-const esc  = s => String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));
-const to10 = v => (String(v) === '1' || String(v).toLowerCase() === 'true' || v === true) ? 1 : 0;
-
-/* ---------- Modal CREATE (define first) ---------- */
-const modal       = document.getElementById('modal');
-const labelExtra  = document.getElementById('label-extra');
-const fieldExtra  = document.getElementById('f-extra');
-const wrapNamaV2  = document.getElementById('wrap-v2-nama');
-const fieldNamaV2 = document.getElementById('f-nama-v2');
-let targetSheet   = 'v1';
-
-function openModal(sheet){
-  targetSheet = sheet;
-  if (sheet === 'v1'){
-    if (labelExtra) labelExtra.textContent = 'Nama (D)';
-    if (wrapNamaV2) wrapNamaV2.style.display = 'none';
-  } else {
-    if (labelExtra) labelExtra.textContent = 'Kode (D)';
-    if (wrapNamaV2) wrapNamaV2.style.display = '';
-  }
-  if (fieldExtra)  fieldExtra.value  = '';
-  if (fieldNamaV2) fieldNamaV2.value = '';
-  if (modal) modal.showModal();
+// MOCK data in-memory (persist di localStorage)
+const LS_MOCK = 'mock.whitelist';
+function getMock() {
+  const raw = localStorage.getItem(LS_MOCK);
+  return raw ? JSON.parse(raw) : { v1: [], v2: [], logs: [] };
+}
+function setMock(x) { localStorage.setItem(LS_MOCK, JSON.stringify(x)); }
+function logMock(action, sheet, row) {
+  const db = getMock();
+  db.logs.unshift({ ts: Date.now(), actor: 'admin', action, sheet, user_id: row?.user_id || '', nama: row?.nama || '', row: JSON.stringify(row||{}) });
+  setMock(db);
 }
 
-const btnCancel = document.getElementById('btn-cancel');
-if (btnCancel && modal) btnCancel.onclick = () => modal.close();
-
-const form = document.getElementById('form-create');
-if (form) form.onsubmit = async (e) => {
-  e.preventDefault();
-  const payload = {
-    user_id: document.getElementById('f-userid').value.trim(),
-    angka  : document.getElementById('f-angka').value.trim(),
-    flag   : document.getElementById('f-flag').value === '1',
-  };
-  if (targetSheet === 'v1'){
-    payload.nama = fieldExtra ? fieldExtra.value.trim() : '';
-  } else {
-    payload.kode = fieldExtra ? fieldExtra.value.trim() : '';
-    payload.nama = fieldNamaV2 ? fieldNamaV2.value.trim() : '';
-  }
-
-  const state = document.getElementById('create-state');
-  if (state) state.textContent = 'Menyimpan…';
-
-  try{
-    if (DATA_PROVIDER === 'sheet'){
-      const body = new URLSearchParams({ token:SHEET_TOKEN, ...payload, flag: payload.flag ? '1' : '0' });
-      const url  = targetSheet === 'v1' ? SHEET_API_URL_V1 : SHEET_API_URL_V2;
-      await fetch(url, { method:'POST', headers:{ 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' }, body, mode:'no-cors' });
-    } else {
-      const table = targetSheet === 'v1' ? 'whitelist_v1' : 'whitelist_v2';
-      await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
-        method:'POST',
-        headers:{ apikey:SUPABASE_ANON_KEY, authorization:`Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type':'application/json' },
-        body: JSON.stringify(payload)
-      }).then(r=>{ if(!r.ok) throw new Error(r.statusText); });
+const Provider = {
+  async listV1() {
+    if (CONFIG.PROVIDER === 'apps_script' && CONFIG.APPS_SCRIPT_URL) {
+      const url = CONFIG.APPS_SCRIPT_URL + '?action=list&sheet=v1';
+      return httpJson(url);
     }
-
-    // log ADD
-    try {
-      const who = (await sb.auth.getUser()).data?.user?.email || 'anonymous';
-      await fetch(`${SUPABASE_URL}/rest/v1/wl_logs`, {
-        method:'POST',
-        headers:{ apikey:SUPABASE_ANON_KEY, authorization:`Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type':'application/json' },
-        body: JSON.stringify({ actor:who, action:'add', sheet:targetSheet, rownum:null, user_id:payload.user_id, nama:payload.nama||'' })
-      });
-    } catch(_) {}
-
-    if (state) state.textContent = 'Berhasil.';
-    if (modal) modal.close();
-    targetSheet === 'v1' ? loadV1() : loadV2();
-  }catch(err){
-    console.error(err);
-    if (state) state.textContent = 'Gagal menyimpan.';
+    if (CONFIG.PROVIDER === 'supabase' && CONFIG.SUPABASE_URL) {
+      throw new Error('Provider supabase belum diinisialisasi di contoh ini');
+    }
+    const db = getMock();
+    return db.v1;
+  },
+  async listV2() {
+    if (CONFIG.PROVIDER === 'apps_script' && CONFIG.APPS_SCRIPT_URL) {
+      const url = CONFIG.APPS_SCRIPT_URL + '?action=list&sheet=v2';
+      return httpJson(url);
+    }
+    if (CONFIG.PROVIDER === 'supabase' && CONFIG.SUPABASE_URL) {
+      throw new Error('Provider supabase belum diinisialisasi di contoh ini');
+    }
+    const db = getMock();
+    return db.v2;
+  },
+  async listLogs() {
+    if (CONFIG.PROVIDER === 'apps_script' && CONFIG.APPS_SCRIPT_URL) {
+      const url = CONFIG.APPS_SCRIPT_URL + '?action=logs';
+      return httpJson(url);
+    }
+    const db = getMock();
+    return db.logs;
+  },
+  async createV1(row) {
+    if (CONFIG.PROVIDER === 'apps_script' && CONFIG.APPS_SCRIPT_URL) {
+      const url = CONFIG.APPS_SCRIPT_URL + '?action=create&sheet=v1';
+      return httpJson(url, { method:'POST', body: JSON.stringify(row) });
+    }
+    const db = getMock();
+    db.v1.unshift({ ...row, created_at: Date.now() });
+    logMock('CREATE', 'v1', row);
+    setMock(db);
+    return { ok: true };
+  },
+  async createV2(row) {
+    if (CONFIG.PROVIDER === 'apps_script' && CONFIG.APPS_SCRIPT_URL) {
+      const url = CONFIG.APPS_SCRIPT_URL + '?action=create&sheet=v2';
+      return httpJson(url, { method:'POST', body: JSON.stringify(row) });
+    }
+    const db = getMock();
+    db.v2.unshift({ ...row, created_at: Date.now() });
+    logMock('CREATE', 'v2', row);
+    setMock(db);
+    return { ok: true };
+  },
+  async deleteV1(user_id) {
+    if (CONFIG.PROVIDER === 'apps_script' && CONFIG.APPS_SCRIPT_URL) {
+      const url = CONFIG.APPS_SCRIPT_URL + '?action=delete&sheet=v1&user_id=' + encodeURIComponent(user_id);
+      return httpJson(url, { method:'POST' });
+    }
+    const db = getMock();
+    const i = db.v1.findIndex(r => String(r.user_id) === String(user_id));
+    if (i >= 0) {
+      const row = db.v1.splice(i,1)[0];
+      logMock('DELETE', 'v1', row);
+      setMock(db);
+    }
+    return { ok: true };
+  },
+  async deleteV2(user_id) {
+    if (CONFIG.PROVIDER === 'apps_script' && CONFIG.APPS_SCRIPT_URL) {
+      const url = CONFIG.APPS_SCRIPT_URL + '?action=delete&sheet=v2&user_id=' + encodeURIComponent(user_id);
+      return httpJson(url, { method:'POST' });
+    }
+    const db = getMock();
+    const i = db.v2.findIndex(r => String(r.user_id) === String(user_id));
+    if (i >= 0) {
+      const row = db.v2.splice(i,1)[0];
+      logMock('DELETE', 'v2', row);
+      setMock(db);
+    }
+    return { ok: true };
   }
 };
 
-/* ---------- V1 ---------- */
-const tbody1      = document.querySelector('#body-v1');
-const btnReloadV1 = document.querySelector('#btn-reload-v1');
-const btnOpenV1   = document.querySelector('#btn-open-v1');
-if (btnReloadV1) btnReloadV1.onclick = loadV1;
-if (btnOpenV1)   btnOpenV1.onclick   = () => openModal('v1');
+/* ======================== UI HOOKS ======================== */
+// Logout
+$('#btn-logout')?.addEventListener('click', () => doLogout());
 
-async function loadV1(){
-  if (tbody1) tbody1.innerHTML = rowLoading(6);
-  try{
-    const raw  = DATA_PROVIDER === 'sheet' ? await fetchSheet(SHEET_API_URL_V1)
-                                           : await fetchSupabase('whitelist_v1?select=*');
-    const data = (raw||[]).map(r=>({
-      row:r.row, user_id:r.user_id||r.userid, angka:r.angka, flag:(String(r.flag)==='1'||r.flag===true),
-      nama:r.nama||r.name, created:r.created_at||r.created||''
-    }));
-    if (tbody1) renderRows(tbody1, data, rowTplV1, 'v1');
-  }catch(err){
-    console.error(err);
-    if (tbody1) tbody1.innerHTML = `<tr><td colspan="6" class="center muted">Gagal memuat</td></tr>`;
+// Modal create
+const dlg = $('#modal');
+const form = $('#form-create');
+const fieldUserId = $('#f-userid');
+const fieldAngka  = $('#f-angka');
+const fieldFlag   = $('#f-flag');
+const fieldExtra  = $('#f-extra');     // V1: Nama (D) | V2: Kode (D)
+const wrapV2Nama  = $('#wrap-v2-nama');
+const fieldNamaV2 = $('#f-nama-v2');
+const createState = $('#create-state');
+const dlgConfirm  = $('#confirm');
+const btnYes      = $('#btn-yes');
+const btnNo       = $('#btn-no');
+const confirmText = $('#confirm-text');
+
+let targetSheet = 'v1';
+$('#btn-open-v1')?.addEventListener('click', () => openModal('v1'));
+$('#btn-open-v2')?.addEventListener('click', () => openModal('v2'));
+$('#btn-cancel')?.addEventListener('click', () => dlg.close());
+
+function openModal(sheet) {
+  targetSheet = sheet;
+  createState.textContent = '';
+  form?.reset();
+  if (sheet === 'v1') {
+    $('#label-extra').textContent = 'Nama (D)';
+    wrapV2Nama.style.display = 'none';
+  } else {
+    $('#label-extra').textContent = 'Kode (D)';
+    wrapV2Nama.style.display = '';
   }
+  dlg.showModal();
 }
 
-/* ---------- V2 ---------- */
-const tbody2      = document.querySelector('#body-v2');
-const btnReloadV2 = document.querySelector('#btn-reload-v2');
-const btnOpenV2   = document.querySelector('#btn-open-v2');
-if (btnReloadV2) btnReloadV2.onclick = loadV2;
-if (btnOpenV2)   btnOpenV2.onclick   = () => openModal('v2');
+form?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  try {
+    const user_id = (fieldUserId.value||'').trim();
+    const angka   = Number(fieldAngka.value||0);
+    const flag    = to10(fieldFlag.value||0);
 
-async function loadV2(){
-  if (tbody2) tbody2.innerHTML = rowLoading(6);
-  try{
-    const raw  = DATA_PROVIDER === 'sheet' ? await fetchSheet(SHEET_API_URL_V2)
-                                           : await fetchSupabase('whitelist_v2?select=*');
-    const data = (raw||[]).map(r=>({
-      row:r.row, user_id:r.user_id||r.userid, angka:r.angka, flag:(String(r.flag)==='1'||r.flag===true),
-      kode:r.kode||'', nama:r.nama||r.name
-    }));
-    if (tbody2) renderRows(tbody2, data, rowTplV2, 'v2');
-  }catch(err){
+    if (targetSheet === 'v1') {
+      const row = { user_id, angka, flag, nama: (fieldExtra.value||'').trim(), created_at: Date.now() };
+      await Provider.createV1(row);
+      createState.textContent = 'Berhasil disimpan.';
+      await loadV1();
+    } else {
+      const row = { user_id, angka, flag, kode: (fieldExtra.value||'').trim(), nama: (fieldNamaV2.value||'').trim(), created_at: Date.now() };
+      await Provider.createV2(row);
+      createState.textContent = 'Berhasil disimpan.';
+      await loadV2();
+    }
+    setTimeout(() => dlg.close(), 250);
+  } catch (err) {
     console.error(err);
-    if (tbody2) tbody2.innerHTML = `<tr><td colspan="6" class="center muted">Gagal memuat</td></tr>`;
+    createState.textContent = err?.message || 'Gagal menyimpan.';
   }
-}
+});
 
-/* ---------- row templates (dengan tombol X) ---------- */
-const rowTplV1 = (r) => `
-  <tr data-row="${r.row||''}" data-userid="${esc(r.user_id)}" data-nama="${esc(r.nama)}">
-    <td>${esc(r.user_id)}</td>
-    <td>${esc(r.angka)}</td>
-    <td>${to10(r.flag)}</td>
-    <td>${esc(r.nama)}</td>
-    <td>${esc(r.created||'')}</td>
-    <td style="width:40px;text-align:center;"><button class="btn-icon btn-del" aria-label="Hapus">✕</button></td>
-  </tr>`;
+/* ======================== RENDER TABLES ======================== */
+const bodyV1 = $('#body-v1');
+const bodyV2 = $('#body-v2');
+const bodyLogs = $('#body-logs');
 
-const rowTplV2 = (r) => `
-  <tr data-row="${r.row||''}" data-userid="${esc(r.user_id)}" data-nama="${esc(r.nama)}">
-    <td>${esc(r.user_id)}</td>
-    <td>${esc(r.angka)}</td>
-    <td>${to10(r.flag)}</td>
-    <td>${esc(r.kode)}</td>
-    <td>${esc(r.nama)}</td>
-    <td style="width:40px;text-align:center;"><button class="btn-icon btn-del" aria-label="Hapus">✕</button></td>
-  </tr>`;
-
-/* ---------- render + attach delete ---------- */
-function renderRows(tbody, rows, tpl, sheet){
-  if (!rows || !rows.length){ tbody.innerHTML = `<tr><td colspan="99" class="center muted">Kosong</td></tr>`; return; }
+function renderRows(tbody, rows, tpl, key='id') {
+  if (!tbody) return;
+  if (!rows || rows.length === 0) { tbody.innerHTML = rowEmpty(tbody.querySelectorAll('tr th, tr td').length || 6); return; }
   tbody.innerHTML = rows.map(tpl).join('');
-  tbody.querySelectorAll('.btn-del').forEach(btn=>{
-    btn.onclick = (e)=>{
-      const tr = e.currentTarget.closest('tr');
-      const row = parseInt(tr.dataset.row||'0',10);
-      const userid = tr.dataset.userid || '';
-      const nama = tr.dataset.nama || '';
-      confirmDelete({sheet,row,userid,nama});
-    };
+  // hook delete buttons
+  tbody.querySelectorAll('.btn-del[data-id]').forEach(btn => {
+    btn.addEventListener('click', () => askDelete(btn.dataset.id, btn.dataset.sheet || 'v1'));
   });
 }
 
-/* ---------- Confirm delete ---------- */
-const confirmDlg  = document.getElementById('confirm');
-const confirmText = document.getElementById('confirm-text');
-const btnNo       = document.getElementById('btn-no');
-const btnYes      = document.getElementById('btn-yes');
-if (btnNo  && confirmDlg) btnNo.onclick  = () => confirmDlg.close();
-
-async function doDelete({sheet,row,userid,nama}){
-  if (!row) return;
-  const url  = sheet==='v1' ? SHEET_API_URL_V1 : SHEET_API_URL_V2;
-  const body = new URLSearchParams({ token:SHEET_TOKEN, action:'delete', row:String(row) });
-  await fetch(url, { method:'POST', headers:{ 'Content-Type':'application/x-www-form-urlencoded' }, body });
-
-  // log DELETE
-  try {
-    const who = (await sb.auth.getUser()).data?.user?.email || 'anonymous';
-    await fetch(`${SUPABASE_URL}/rest/v1/wl_logs`, {
-      method:'POST',
-      headers:{ apikey:SUPABASE_ANON_KEY, authorization:`Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type':'application/json' },
-      body: JSON.stringify({ actor:who, action:'delete', sheet, rownum:row, user_id:userid, nama })
-    });
-  } catch(_) {}
-
-  sheet==='v1' ? loadV1() : loadV2();
+function tplV1(r) {
+  return `<tr>
+    <td>${esc(r.user_id)}</td>
+    <td>${esc(r.angka)}</td>
+    <td>${to10(r.flag)}</td>
+    <td>${esc(r.nama||'')}</td>
+    <td>${esc(fmtTime(r.created_at))}</td>
+    <td><button class="btn-danger btn-del" data-id="${esc(r.user_id)}" data-sheet="v1">Hapus</button></td>
+  </tr>`;
+}
+function tplV2(r) {
+  return `<tr>
+    <td>${esc(r.user_id)}</td>
+    <td>${esc(r.angka)}</td>
+    <td>${to10(r.flag)}</td>
+    <td>${esc(r.kode||'')}</td>
+    <td>${esc(r.nama||'')}</td>
+    <td><button class="btn-danger btn-del" data-id="${esc(r.user_id)}" data-sheet="v2">Hapus</button></td>
+  </tr>`;
+}
+function tplLog(r) {
+  return `<tr>
+    <td>${esc(fmtTime(r.ts||r.created_at))}</td>
+    <td>${esc(r.actor||'')}</td>
+    <td>${esc(r.action||'')}</td>
+    <td>${esc(r.sheet||'')}</td>
+    <td>${esc(r.user_id||'')}</td>
+    <td>${esc(r.nama||'')}</td>
+    <td>${esc(r.row||'')}</td>
+  </tr>`;
 }
 
-function confirmDelete({sheet,row,userid,nama}){
-  confirmText.innerHTML = `Apakah anda yakin ingin menghapus baris <b>${row}</b> dengan nama <b>${esc(nama)}</b> dengan userid <b>${esc(userid)}</b>?`;
-  confirmDlg.showModal();
-  const handler = async ()=>{ confirmDlg.close(); btnYes.removeEventListener('click', handler); await doDelete({sheet,row,userid,nama}); };
-  btnYes.addEventListener('click', handler);
+async function loadV1() {
+  if (bodyV1) bodyV1.innerHTML = rowLoading(6);
+  const rows = await Provider.listV1();
+  renderRows(bodyV1, rows, tplV1, 'user_id');
 }
+async function loadV2() {
+  if (bodyV2) bodyV2.innerHTML = rowLoading(6);
+  const rows = await Provider.listV2();
+  renderRows(bodyV2, rows, tplV2, 'user_id');
+}
+async function loadLogs() {
+  if (bodyLogs) bodyLogs.innerHTML = rowLoading(7);
+  const rows = await Provider.listLogs();
+  renderRows(bodyLogs, rows, tplLog, 'ts');
+}
+$('#btn-reload-v1')?.addEventListener('click', loadV1);
+$('#btn-reload-v2')?.addEventListener('click', loadV2);
+$('#btn-reload-logs')?.addEventListener('click', loadLogs);
 
-/* ---------- Logs ---------- */
-const tbodyLogs = document.getElementById('body-logs');
-const btnReloadLogs = document.getElementById('btn-reload-logs');
-if (btnReloadLogs) btnReloadLogs.onclick = loadLogs;
-
-async function loadLogs(){
-  if (!tbodyLogs) return;
-  tbodyLogs.innerHTML = rowLoading(7);
-  try{
-    const data = await fetchSupabase('wl_logs?select=*&order=created_at.desc');
-    if (!data.length){ tbodyLogs.innerHTML = `<tr><td colspan="7" class="center muted">Kosong</td></tr>`; return; }
-    tbodyLogs.innerHTML = data.map(l => `
-      <tr>
-        <td>${new Date(l.created_at).toLocaleString()}</td>
-        <td>${esc(l.actor || '')}</td>
-        <td>${esc(l.action || '')}</td>
-        <td>${esc(l.sheet  || '')}</td>
-        <td>${esc(l.user_id|| '')}</td>
-        <td>${esc(l.nama   || '')}</td>
-        <td>${esc(l.rownum || '')}</td>
-      </tr>
-    `).join('');
-  }catch(err){
-    console.error(err);
-    tbodyLogs.innerHTML = `<tr><td colspan="7" class="center muted">Gagal memuat</td></tr>`;
+// Delete confirm
+function askDelete(user_id, sheet) {
+  confirmText.textContent = `Hapus data ${user_id} dari ${sheet.toUpperCase()}?`;
+  dlgConfirm.showModal();
+  const onNo = () => { dlgConfirm.close(); cleanup(); };
+  const onYes = async () => {
+    try {
+      if (sheet === 'v1') await Provider.deleteV1(user_id);
+      else await Provider.deleteV2(user_id);
+      sheet === 'v1' ? loadV1() : loadV2();
+    } finally {
+      dlgConfirm.close();
+      cleanup();
+    }
+  };
+  function cleanup() {
+    btnNo.removeEventListener('click', onNo);
+    btnYes.removeEventListener('click', onYes);
   }
+  btnNo.addEventListener('click', onNo, { once: true });
+  btnYes.addEventListener('click', onYes, { once: true });
 }
 
-/* ---------- Helpers ---------- */
-const rowLoading = (colspan) => `<tr><td colspan="${colspan}" class="center muted">Memuat…</td></tr>`;
+// Prefetch some mock data if empty
+(function seed() {
+  try {
+    const db = JSON.parse(localStorage.getItem('mock.whitelist') || '{}');
+    if (!db.v1 && !db.v2) {
+      localStorage.setItem('mock.whitelist', JSON.stringify({
+        v1: [
+          { user_id:'12345', angka: 7, flag: 1, nama: 'User Satu', created_at: Date.now()-86400000 },
+          { user_id:'67890', angka: 3, flag: 0, nama: 'User Dua', created_at: Date.now()-3600000 }
+        ],
+        v2: [
+          { user_id:'abc', angka: 1, flag: 1, kode:'VIP', nama: 'Alpha', created_at: Date.now()-7200000 }
+        ],
+        logs: []
+      }));
+    }
+  } catch {}
+})();

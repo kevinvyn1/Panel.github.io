@@ -1,70 +1,40 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Login</title>
-  <style>
-    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif; }
-    body { margin: 0; min-height: 100svh; display: grid; place-items: center; background: #0f172a; color: #e2e8f0; }
-    .card { width: min(92vw, 420px); background: #111827; border: 1px solid #1f2937; border-radius: 16px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
-    h1 { margin: 0 0 4px; font-size: 22px; }
-    p.sub { margin: 0 0 16px; color: #94a3b8; font-size: 14px; }
-    label { display: block; font-size: 13px; margin: 12px 0 6px; color: #cbd5e1; }
-    input[type="password"] { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid #334155; background: #0b1220; color: #e2e8f0; }
-    button { margin-top: 14px; width: 100%; padding: 12px 14px; border: 0; border-radius: 10px; background: #2563eb; color: #fff; font-weight: 600; cursor: pointer; }
-    button:active { transform: translateY(1px); }
-    .err { display:none; margin-top:10px; color: #fca5a5; font-size: 13px; }
-    .hint { margin-top: 10px; font-size: 12px; color: #94a3b8; }
-    .meta { margin-top: 14px; font-size: 12px; color: #64748b; }
-    a { color: #93c5fd; }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - Admin Panel</title>
+
+  <meta http-equiv="Content-Security-Policy"
+        content="
+          default-src 'self';
+          connect-src 'self' https://*.supabase.co https://script.google.com https://script.googleusercontent.com;
+          img-src 'self' data:;
+          font-src 'self' data:;
+          style-src 'self' 'unsafe-inline';
+          script-src 'self' https://esm.sh https://script.google.com https://script.googleusercontent.com;
+          upgrade-insecure-requests">
+  <link rel="stylesheet" href="assets/styles.css" />
 </head>
-<body>
-  <div class="card">
-    <h1>Masuk</h1>
-    <p class="sub">Demo proteksi halaman statis (client-side).</p>
-    <form id="login-form" autocomplete="off">
-      <label for="pwd">Password</label>
-      <input id="pwd" type="password" name="password" required />
-      <button type="submit">Masuk</button>
-      <div id="error" class="err">Password salah.</div>
+<body class="no-select login">
+  <div class="login-card">
+    <h1 class="logo">INFERNO</h1>
+    <h2>Login Admin</h2>
+    <form id="login-form">
+      <label class="field"><span>Password</span>
+        <input id="password" type="password" autocomplete="current-password" required />
+      </label>
+      <div class="modal-actions">
+        <button class="btn" type="submit">Masuk</button>
+      </div>
+      <div id="login-state" class="state" aria-live="polite"></div>
     </form>
-    <div class="hint">Default session: 30 menit. Setelah login, kamu akan diarahkan ke halaman tujuan.</div>
-    <div class="meta">Catatan: Proteksi ini hanya untuk keperluan UI. Untuk keamanan, gunakan auth server-side.</div>
+
+    <p class="muted" style="margin-top:1rem">
+      Password default ada di <code>js/config.js</code> & bisa diubah via <code>localStorage.ADMIN_PASS</code>.
+    </p>
   </div>
 
-  <script type="module">
-    import { login, isLoggedIn } from './js/auth.js';
-
-    // ⚠️ Demo cepat — GANTI password ini.
-    const PASSWORD = 'ganti-password-ini';
-
-    // Kalau sudah login, langsung ke tujuan
-    (function autoForwardIfLoggedIn() {
-      if (!isLoggedIn()) return;
-      const sp = new URLSearchParams(location.search);
-      const next = sp.get('next') || 'admin.html';
-      location.replace(next);
-    })();
-
-    const form = document.getElementById('login-form');
-    const errorEl = document.getElementById('error');
-
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const pwd = new FormData(form).get('password');
-
-      if (pwd === PASSWORD) {
-        const token = (crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Math.random()).slice(2);
-        login({ token, ttlMs: 30 * 60 * 1000 }); // 30 menit
-        const sp = new URLSearchParams(location.search);
-        const next = sp.get('next') || 'admin.html';
-        location.replace(next);
-      } else {
-        errorEl.style.display = 'block';
-      }
-    });
-  </script>
+  <script type="module" src="js/index.js"></script>
 </body>
 </html>
