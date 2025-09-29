@@ -4,15 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login - Admin Panel</title>
-
   <meta http-equiv="Content-Security-Policy"
         content="
           default-src 'self';
           connect-src 'self' https://*.supabase.co https://script.google.com https://script.googleusercontent.com;
-          img-src 'self' data:;
+          img-src 'self' data: https://hcaptcha.com https://*.hcaptcha.com;
           font-src 'self' data:;
           style-src 'self' 'unsafe-inline';
-          script-src 'self' https://esm.sh https://script.google.com https://script.googleusercontent.com;
+          script-src 'self' https://hcaptcha.com https://*.hcaptcha.com https://script.google.com https://script.googleusercontent.com;
+          frame-src https://hcaptcha.com https://*.hcaptcha.com;
           upgrade-insecure-requests">
   <link rel="stylesheet" href="assets/styles.css" />
 </head>
@@ -24,17 +24,16 @@
       <label class="field"><span>Password</span>
         <input id="password" type="password" autocomplete="current-password" required />
       </label>
+      <div id="captcha-area" class="field" style="display:none"></div>
       <div class="modal-actions">
         <button class="btn" type="submit">Masuk</button>
       </div>
       <div id="login-state" class="state" aria-live="polite"></div>
     </form>
-
     <p class="muted" style="margin-top:1rem">
-      Password default ada di <code>js/config.js</code> & bisa diubah via <code>localStorage.ADMIN_PASS</code>.
+      Password default dapat di-set via <code>localStorage.ADMIN_PASS</code> jika tidak didefinisikan di <code>config.js</code>.
     </p>
   </div>
-
   <script type="module" src="js/index.js"></script>
 </body>
 </html>
